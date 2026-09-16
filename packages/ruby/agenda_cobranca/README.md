@@ -5,7 +5,7 @@ No uso basico basta `api_key` (+ `base_url` opcional). HMAC e opcional e fica OF
 
 ## Instalacao
 
-Publicado no **GitHub Packages**. Host e PAT: ver [`docs/publishing.md`](../../../docs/publishing.md).
+Publicado no **GitHub Packages**. Host e PAT: README na raiz do monorepo.
 
 ```ruby
 # Gemfile

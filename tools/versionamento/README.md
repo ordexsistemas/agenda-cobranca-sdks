@@ -8,7 +8,7 @@ CLI portátil (Python stdlib) inspirada no `clic_versionamento`:
 - Cria tag anotada `sdk/vX.Y.Z`
 - Opcionalmente faz push e `gh release create`
 
-O módulo Go (`agendacobranca.dev/sdk/go`) não tem campo de versão no `go.mod`; o workflow de publish cria a tag de subdiretório `packages/go/agenda-cobranca-go/vX.Y.Z`. Ver [`docs/publishing.md`](../../docs/publishing.md).
+O módulo Go (`agendacobranca.dev/sdk/go`) não tem campo de versão no `go.mod`; o workflow de publish cria a tag de subdiretório `packages/go/agenda-cobranca-go/vX.Y.Z`. Ver README na raiz (GitHub Packages).
 
 ## Uso local
 
@@ -29,4 +29,4 @@ O módulo Go (`agendacobranca.dev/sdk/go`) não tem campo de versão no `go.mod`
 ## Actions
 
 Workflow: `.github/workflows/versionamento.yml` (`workflow_dispatch`).
-Após o tag, chama [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) (GitHub Packages: npm, NuGet, RubyGems + tag Go). Ver [`docs/publishing.md`](../../docs/publishing.md).
+Após o tag, chama [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) (GitHub Packages: npm, NuGet, RubyGems + tag Go).

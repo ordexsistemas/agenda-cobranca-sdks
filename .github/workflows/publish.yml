@@ -211,4 +211,4 @@ jobs:
           # Best-effort: indexa no proxy (falha sem vanity DNS não quebra o job).
           curl -fsS "https://proxy.golang.org/${MODULE}/@v/v${VERSION}.info" \
             && echo "proxy.golang.org indexou v${VERSION}" \
-            || echo "::warning::proxy.golang.org ainda não resolve ${MODULE}@v${VERSION} (vanity DNS ou tag). Ver docs/publishing.md"
+            || echo "::warning::proxy.golang.org ainda não resolve ${MODULE}@v${VERSION} (vanity DNS ou tag). Ver README (GitHub Packages)."
