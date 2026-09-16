@@ -206,3 +206,7 @@ Basta a **API key** gerada no painel e, se necessário, a URL do ambiente.
 - SDKs: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://github.com/ordexsistemas/agenda-cobranca-sdks)
 - Arquitetura HMAC (opcional): [`architecture.md`](architecture.md)
 - Vetores de teste HMAC: [`hmac-test-vectors.md`](hmac-test-vectors.md)
+
+## Portal (front)
+
+Conteúdo pronto para a página de Integrações: [`portal/pagina-integracao.md`](portal/pagina-integracao.md).
