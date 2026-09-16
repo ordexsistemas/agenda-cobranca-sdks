@@ -25,3 +25,8 @@ packages/csharp/**/obj/
 
 # Uploads locais da sessao
 uploads/
+
+# Python (tools/versionamento)
+__pycache__/
+*.py[cod]
+.Python

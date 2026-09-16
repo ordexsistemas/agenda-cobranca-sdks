@@ -1,0 +1,7 @@
+#!/usr/bin/env bash
+# Portable SemVer release CLI (tools/versionamento)
+set -euo pipefail
+ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+export VERSIONAMENTO_ROOT="$ROOT"
+cd "$ROOT"
+exec python3 -m tools.versionamento "$@"

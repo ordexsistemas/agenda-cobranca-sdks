@@ -154,3 +154,12 @@ make test
 
 Cobranças (CRUD + cancel), `POST /licenses/verify` e `Webhooks.Verify` local.  
 Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`) estão documentados em [`docs/integracao-ordex-pay.md`](docs/integracao-ordex-pay.md).
+
+## Versionamento
+
+- `VERSION.yml` — component `sdk`, product "Ordex Pay SDKs"
+- `CHANGELOG.md` — Keep a Changelog (PT)
+- CLI: `./bin/versionamento` (Python stdlib em `tools/versionamento/`)
+- Actions: `.github/workflows/versionamento.yml` (`workflow_dispatch`, bump auto|patch|minor|major)
+
+Tag anotada: `sdk/vX.Y.Z`. Detalhes: [`tools/versionamento/README.md`](tools/versionamento/README.md).
