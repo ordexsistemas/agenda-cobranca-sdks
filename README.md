@@ -14,7 +14,7 @@ Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://gi
 | Ruby | `agenda_cobranca` (RubyGems) | `packages/ruby/agenda_cobranca` |
 | Go | `agendacobranca.dev/sdk/go` | `packages/go/agenda-cobranca-go` |
 | C# | `AgendaCobranca.Sdk` (NuGet, .NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
-| Node.js | `agenda-cobranca` (npm) | `packages/nodejs/agenda-cobranca` |
+| Node.js | `@ordex/agenda-cobranca` (npm) | `packages/nodejs/agenda-cobranca` |
 
 Documentação de arquitetura: [`docs/architecture.md`](docs/architecture.md).  
 Vetores HMAC: [`docs/hmac-test-vectors.md`](docs/hmac-test-vectors.md).  
@@ -146,10 +146,10 @@ cd packages/csharp/AgendaCobranca.Sdk
 dotnet test
 ```
 
-## Node.js — npm `agenda-cobranca`
+## Node.js — npm `@ordex/agenda-cobranca`
 
 ```ts
-import { Client } from "agenda-cobranca";
+import { Client } from "@ordex/agenda-cobranca";
 
 const client = new Client({
   apiKey: process.env.ORDEX_PAY_API_KEY!,

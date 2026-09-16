@@ -52,7 +52,7 @@ jobs:
           echo "Publicando SDKs v$VER"
 
   npm:
-    name: npm (agenda-cobranca)
+    name: npm (@ordex/agenda-cobranca)
     needs: resolve
     runs-on: ubuntu-latest
     steps:
@@ -81,9 +81,9 @@ jobs:
           npm ci
           npm test
           npm run build
-          CURRENT=$(npm view agenda-cobranca version 2>/dev/null || true)
+          CURRENT=$(npm view @ordex/agenda-cobranca version 2>/dev/null || true)
           if [ "$CURRENT" = "$VERSION" ]; then
-            echo "agenda-cobranca@$VERSION já publicado"
+            echo "@ordex/agenda-cobranca@$VERSION já publicado"
             exit 0
           fi
           npm publish --access public

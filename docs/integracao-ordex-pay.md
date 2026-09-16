@@ -80,7 +80,7 @@ dotnet add package AgendaCobranca.Sdk
 ### Node.js
 
 ```bash
-npm install agenda-cobranca
+npm i @ordex/agenda-cobranca
 ```
 
 ## 4. Exemplos mínimos (só `api_key`)
@@ -151,7 +151,7 @@ var cobranca = await client.CreateCobrancaAsync(new CreateCobrancaRequest(
 ### Node.js
 
 ```ts
-import { Client } from "agenda-cobranca";
+import { Client } from "@ordex/agenda-cobranca";
 
 const client = new Client({
   apiKey: process.env.ORDEX_PAY_API_KEY!,

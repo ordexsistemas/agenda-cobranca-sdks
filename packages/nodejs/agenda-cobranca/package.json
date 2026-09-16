@@ -1,5 +1,5 @@
 {
-  "name": "agenda-cobranca",
+  "name": "@ordex/agenda-cobranca",
   "version": "0.2.0",
   "description": "Thin client Node.js/TypeScript para a API externa Ordex Pay / Agenda Financeira",
   "license": "MIT",

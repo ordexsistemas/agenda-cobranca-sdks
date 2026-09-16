@@ -16,7 +16,7 @@ Configure em **Settings → Secrets and variables → Actions** (não commite to
 | --- | --- | --- |
 | `RUBYGEMS_API_KEY` | RubyGems | `gem push` da gem `agenda_cobranca`. Alternativa: `GEM_HOST_API_KEY` (mesmo valor; a API do RubyGems espera este nome no ambiente). |
 | `NUGET_API_KEY` | NuGet.org | `dotnet nuget push` de `AgendaCobranca.Sdk` |
-| `NPM_TOKEN` | npm | `npm publish` de `agenda-cobranca` (automação com permissão **Publish**) |
+| `NPM_TOKEN` | npm | `npm publish` de `@ordex/agenda-cobranca` (automação com permissão **Publish**; `--access public`) |
 
 O job Go **não** precisa de secret de registry. Jobs cujo secret estiver vazio são **pulados** com warning (o restante do workflow segue).
 
@@ -36,9 +36,9 @@ dotnet pack src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj -c Release -p:Packa
 dotnet nuget push nupkgs/*.nupkg -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
 ```
 
-## npm — `agenda-cobranca`
+## npm — `@ordex/agenda-cobranca`
 
-Pacote **unscoped** (mesmo estilo da gem `agenda_cobranca`). Requer Node 18+.
+Pacote **scoped** (`@ordex/...`). Requer Node 18+ e publish com `--access public`.
 
 ```bash
 cd packages/nodejs/agenda-cobranca
