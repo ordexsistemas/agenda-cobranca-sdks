@@ -23,6 +23,23 @@ jobs:
       - run: npm run build
         working-directory: packages/nodejs/agenda-cobranca
 
+  node-whatsapp:
+    name: Node.js (whatsapp-sdk)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: packages/nodejs/whatsapp-sdk/package-lock.json
+      - run: npm ci
+        working-directory: packages/nodejs/whatsapp-sdk
+      - run: npm test
+        working-directory: packages/nodejs/whatsapp-sdk
+      - run: npm run build
+        working-directory: packages/nodejs/whatsapp-sdk
+
   go:
     name: Go
     runs-on: ubuntu-latest

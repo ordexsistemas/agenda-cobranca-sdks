@@ -19,20 +19,24 @@ class SyncPackageVersionsTest(unittest.TestCase):
             lock = root / "packages/ruby/agenda_cobranca/Gemfile.lock"
             csharp = root / "packages/csharp/AgendaCobranca.Sdk/src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj"
             node = root / "packages/nodejs/agenda-cobranca/package.json"
+            whatsapp = root / "packages/nodejs/whatsapp-sdk/package.json"
             ruby.parent.mkdir(parents=True)
             csharp.parent.mkdir(parents=True)
             node.parent.mkdir(parents=True)
+            whatsapp.parent.mkdir(parents=True)
             ruby.write_text('module AgendaCobranca\n  VERSION = "0.1.0"\nend\n', encoding="utf-8")
             lock.write_text("PATH\n  specs:\n    agenda_cobranca (0.1.0)\n\nCHECKSUMS\n  agenda_cobranca (0.1.0)\n", encoding="utf-8")
             csharp.write_text("<Project><Version>0.1.0</Version></Project>\n", encoding="utf-8")
             node.write_text(json.dumps({"name": "@ordexsistemas/agenda-cobranca", "version": "0.1.0"}, indent=2) + "\n", encoding="utf-8")
+            whatsapp.write_text(json.dumps({"name": "@ordexsistemas/whatsapp-sdk", "version": "0.1.0"}, indent=2) + "\n", encoding="utf-8")
 
             updated = sync_package_versions(root, parse("0.2.0"))
-            self.assertEqual(len(updated), 4)
+            self.assertEqual(len(updated), 5)
             self.assertIn('VERSION = "0.2.0"', ruby.read_text(encoding="utf-8"))
             self.assertEqual(lock.read_text(encoding="utf-8").count("agenda_cobranca (0.2.0)"), 2)
             self.assertIn("<Version>0.2.0</Version>", csharp.read_text(encoding="utf-8"))
             self.assertEqual(json.loads(node.read_text(encoding="utf-8"))["version"], "0.2.0")
+            self.assertEqual(json.loads(whatsapp.read_text(encoding="utf-8"))["version"], "0.2.0")
 
 
 if __name__ == "__main__":

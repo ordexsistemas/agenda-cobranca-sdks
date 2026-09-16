@@ -15,6 +15,7 @@ Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://gi
 | Go | `agendacobranca.dev/sdk/go` | `packages/go/agenda-cobranca-go` |
 | C# | `AgendaCobranca.Sdk` (GitHub Packages, .NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
 | Node.js | `@ordexsistemas/agenda-cobranca` (GitHub Packages) | `packages/nodejs/agenda-cobranca` |
+| Node.js | `@ordexsistemas/whatsapp-sdk` (add-on SaaS WhatsApp Cloud API) | `packages/nodejs/whatsapp-sdk` |
 
 Documentação de arquitetura e vetores HMAC: pasta local `docs/` (não versionada).  
 Instalação via GitHub Packages: seção [GitHub Packages](#github-packages) abaixo.
@@ -170,6 +171,40 @@ npm install
 npm test
 ```
 
+## Node.js — npm `@ordexsistemas/whatsapp-sdk` (add-on SaaS)
+
+Thin client da **API principal do WhatsApp** (Meta Cloud API) para tenants Ordex Pay com o extra WhatsApp. Mede envios por categoria (`auth` / `utility` / `service` / `marketing`) contra as cotas do Cenário Base (~100k transações/mês) e converte o uso na **quantidade de cobranças** da Agenda Financeira.
+
+```ts
+import { StaticEntitlementChecker, WhatsAppClient } from "@ordexsistemas/whatsapp-sdk";
+
+const client = new WhatsAppClient({
+  accessToken: process.env.WHATSAPP_ACCESS_TOKEN!,
+  phoneNumberId: process.env.WHATSAPP_PHONE_NUMBER_ID!,
+  wabaId: process.env.WHATSAPP_WABA_ID,
+  tenantId: process.env.ORDEX_PAY_TENANT_ID!,
+  ordexApiKey: process.env.ORDEX_PAY_API_KEY,
+  agendaPagador: { documento: "12345678901", nome: "Empresa SaaS" },
+  entitlement: new StaticEntitlementChecker(true), // demo; produção: OrdexPayEntitlementChecker
+});
+
+await client.sendTemplate({
+  to: "5511999999999",
+  category: "utility",
+  template: { name: "pix_recebido", language: "pt_BR" },
+});
+
+await client.syncCobrancas(); // cria/limita cobranças do período conforme o volume medido
+```
+
+Cotas default, franquia de 1.000 sessões em `service`, modos `hard`/`soft` e a função `computeCobrancaQuantity`: [`packages/nodejs/whatsapp-sdk/README.md`](packages/nodejs/whatsapp-sdk/README.md).
+
+```bash
+cd packages/nodejs/whatsapp-sdk
+npm install
+npm test
+```
+
 ## Testar todos de uma vez
 
 ```bash
@@ -197,7 +232,7 @@ Não publicamos em nuget.org, npmjs.com nem RubyGems.org. O workflow usa `GITHUB
 
 Os pacotes **herdam a visibilidade do repositório**. Se o repo for privado, o consumidor precisa de um PAT com `read:packages` (e `repo` se o pacote estiver ligado a um repositório privado).
 
-### npm — `@ordexsistemas/agenda-cobranca`
+### npm — `@ordexsistemas/agenda-cobranca` e `@ordexsistemas/whatsapp-sdk`
 
 `.npmrc`:
 
@@ -208,6 +243,7 @@ Os pacotes **herdam a visibilidade do repositório**. Se o repo for privado, o c
 
 ```bash
 npm i @ordexsistemas/agenda-cobranca
+npm i @ordexsistemas/whatsapp-sdk
 ```
 
 ### NuGet — `AgendaCobranca.Sdk`

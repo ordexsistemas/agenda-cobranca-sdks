@@ -7,6 +7,9 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
+### Added
+- SDK Node.js/TypeScript `@ordexsistemas/whatsapp-sdk` (add-on SaaS WhatsApp Cloud API, medição por categoria e quantidade de cobranças)
+
 ### Changed
 - Pasta `docs/` deixou de ser versionada (instruções de GitHub Packages no README da raiz)
 

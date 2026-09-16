@@ -4,7 +4,7 @@ CLI portátil (Python stdlib) inspirada no `clic_versionamento`:
 
 - Lê/atualiza `VERSION.yml` (component `sdk`, product "Ordex Pay SDKs")
 - Atualiza `CHANGELOG.md` (Keep a Changelog)
-- Sincroniza a versão nos pacotes Ruby (`version.rb`), C# (`.csproj`) e Node (`package.json`)
+- Sincroniza a versão nos pacotes Ruby (`version.rb`), C# (`.csproj`) e Node (`agenda-cobranca` e `whatsapp-sdk` `package.json`)
 - Cria tag anotada `sdk/vX.Y.Z`
 - Opcionalmente faz push e `gh release create`
 
@@ -29,4 +29,4 @@ O módulo Go (`agendacobranca.dev/sdk/go`) não tem campo de versão no `go.mod`
 ## Actions
 
 Workflow: `.github/workflows/versionamento.yml` (`workflow_dispatch`).
-Após o tag, chama [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) (GitHub Packages: npm, NuGet, RubyGems + tag Go).
+Após o tag, chama [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) (GitHub Packages: npm agenda-cobranca + whatsapp-sdk, NuGet, RubyGems + tag Go).

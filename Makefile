@@ -1,6 +1,6 @@
-.PHONY: test test-ruby test-go test-csharp test-node test-versionamento
+.PHONY: test test-ruby test-go test-csharp test-node test-whatsapp test-versionamento
 
-test: test-ruby test-go test-csharp test-node test-versionamento
+test: test-ruby test-go test-csharp test-node test-whatsapp test-versionamento
 
 test-ruby:
 	cd packages/ruby/agenda_cobranca && bundle exec rspec
@@ -13,6 +13,9 @@ test-csharp:
 
 test-node:
 	cd packages/nodejs/agenda-cobranca && npm test
+
+test-whatsapp:
+	cd packages/nodejs/whatsapp-sdk && npm test
 
 test-versionamento:
 	python3 -m unittest tools.versionamento.test_files

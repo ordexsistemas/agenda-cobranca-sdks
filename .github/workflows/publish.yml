@@ -90,6 +90,44 @@ jobs:
           fi
           npm publish
 
+  npm-whatsapp:
+    name: GitHub Packages npm (@ordexsistemas/whatsapp-sdk)
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: sdk/v${{ needs.resolve.outputs.version }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: https://npm.pkg.github.com
+          scope: "@ordexsistemas"
+
+      - name: Publish
+        working-directory: packages/nodejs/whatsapp-sdk
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::error::GITHUB_TOKEN ausente; impossível publicar no GitHub Packages"
+            exit 1
+          fi
+          npm ci
+          npm test
+          npm run build
+          CURRENT=$(npm view @ordexsistemas/whatsapp-sdk version --registry=https://npm.pkg.github.com 2>/dev/null || true)
+          if [ "$CURRENT" = "$VERSION" ]; then
+            echo "@ordexsistemas/whatsapp-sdk@$VERSION já publicado no GitHub Packages"
+            exit 0
+          fi
+          npm publish
+
   rubygems:
     name: GitHub Packages RubyGems (agenda_cobranca)
     needs: resolve

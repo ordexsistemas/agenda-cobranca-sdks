@@ -15,7 +15,10 @@ RUBY_GEMFILE_LOCK = Path("packages/ruby/agenda_cobranca/Gemfile.lock")
 CSHARP_CSPROJ = Path(
     "packages/csharp/AgendaCobranca.Sdk/src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj"
 )
-NODE_PACKAGE_JSON = Path("packages/nodejs/agenda-cobranca/package.json")
+NODE_PACKAGE_JSONS = (
+    Path("packages/nodejs/agenda-cobranca/package.json"),
+    Path("packages/nodejs/whatsapp-sdk/package.json"),
+)
 
 
 def load_version_yml(path: Path) -> tuple[dict[str, str], Version]:
@@ -130,16 +133,17 @@ def sync_package_versions(root: Path, version: Version) -> list[Path]:
             csproj.write_text(new_text, encoding="utf-8")
             updated.append(csproj)
 
-    package_json = root / NODE_PACKAGE_JSON
-    if package_json.exists():
-        data = json.loads(package_json.read_text(encoding="utf-8"))
-        if data.get("version") != ver:
-            data["version"] = ver
-            package_json.write_text(
-                json.dumps(data, indent=2, ensure_ascii=False) + "\n",
-                encoding="utf-8",
-            )
-            updated.append(package_json)
+    for rel in NODE_PACKAGE_JSONS:
+        package_json = root / rel
+        if package_json.exists():
+            data = json.loads(package_json.read_text(encoding="utf-8"))
+            if data.get("version") != ver:
+                data["version"] = ver
+                package_json.write_text(
+                    json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                    encoding="utf-8",
+                )
+                updated.append(package_json)
 
     return updated
 
