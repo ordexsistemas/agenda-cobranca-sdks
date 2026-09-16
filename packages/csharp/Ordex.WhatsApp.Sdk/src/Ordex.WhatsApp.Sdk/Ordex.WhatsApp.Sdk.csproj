@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>Ordex.WhatsApp.Sdk</RootNamespace>
+    <PackageId>Ordex.WhatsApp.Sdk</PackageId>
+    <Version>0.2.1</Version>
+    <Authors>Ordex Sistemas</Authors>
+    <Description>SDK .NET 8 WhatsApp Cloud API (add-on SaaS Ordex Pay) com medição por categoria e quantidade de cobranças na Agenda Financeira.</Description>
+    <PackageTags>whatsapp;ordex;ordex-pay;saas;metering;agenda;cobranca;sdk</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/ordexsistemas/agenda-cobranca-sdks</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/ordexsistemas/agenda-cobranca-sdks.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.Http" Version="8.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="8.0.2" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\AgendaCobranca.Sdk\src\AgendaCobranca.Sdk\AgendaCobranca.Sdk.csproj" />
+  </ItemGroup>
+</Project>
