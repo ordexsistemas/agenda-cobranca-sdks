@@ -9,6 +9,7 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ### Added
 - SDK Node.js/TypeScript `@ordexsistemas/whatsapp-sdk` (add-on SaaS WhatsApp Cloud API, medição por categoria e quantidade de cobranças)
+- SDKs WhatsApp irmãos em C# (`Ordex.WhatsApp.Sdk`), Go (`agendacobranca.dev/sdk/whatsapp`) e Ruby (`ordex_whatsapp`, com initializer Rails)
 
 ### Changed
 - Pasta `docs/` deixou de ser versionada (instruções de GitHub Packages no README da raiz)

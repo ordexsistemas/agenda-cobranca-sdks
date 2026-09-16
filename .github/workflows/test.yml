@@ -50,6 +50,8 @@ jobs:
           go-version: "1.22"
       - run: go test ./...
         working-directory: packages/go/agenda-cobranca-go
+      - run: go test ./...
+        working-directory: packages/go/whatsapp-go
 
   ruby:
     name: Ruby
@@ -64,6 +66,19 @@ jobs:
       - run: bundle exec rspec
         working-directory: packages/ruby/agenda_cobranca
 
+  ruby-whatsapp:
+    name: Ruby (ordex_whatsapp)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: packages/ruby/whatsapp
+      - run: bundle exec rspec
+        working-directory: packages/ruby/whatsapp
+
   csharp:
     name: C#
     runs-on: ubuntu-latest
@@ -74,6 +89,8 @@ jobs:
           dotnet-version: "8.0.x"
       - run: dotnet test
         working-directory: packages/csharp/AgendaCobranca.Sdk
+      - run: dotnet test
+        working-directory: packages/csharp/Ordex.WhatsApp.Sdk
 
   versionamento:
     name: Versionamento

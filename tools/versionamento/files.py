@@ -10,15 +10,23 @@ from pathlib import Path
 from .semver import Version, parse
 
 # Keep language packages aligned with VERSION.yml on bump/release.
-RUBY_VERSION_RB = Path("packages/ruby/agenda_cobranca/lib/agenda_cobranca/version.rb")
-RUBY_GEMFILE_LOCK = Path("packages/ruby/agenda_cobranca/Gemfile.lock")
-CSHARP_CSPROJ = Path(
-    "packages/csharp/AgendaCobranca.Sdk/src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj"
+RUBY_VERSION_RBS = (
+    Path("packages/ruby/agenda_cobranca/lib/agenda_cobranca/version.rb"),
+    Path("packages/ruby/whatsapp/lib/ordex_whatsapp/version.rb"),
+)
+RUBY_GEMFILE_LOCKS = (
+    Path("packages/ruby/agenda_cobranca/Gemfile.lock"),
+    Path("packages/ruby/whatsapp/Gemfile.lock"),
+)
+CSHARP_CSPROJS = (
+    Path("packages/csharp/AgendaCobranca.Sdk/src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj"),
+    Path("packages/csharp/Ordex.WhatsApp.Sdk/src/Ordex.WhatsApp.Sdk/Ordex.WhatsApp.Sdk.csproj"),
 )
 NODE_PACKAGE_JSONS = (
     Path("packages/nodejs/agenda-cobranca/package.json"),
     Path("packages/nodejs/whatsapp-sdk/package.json"),
 )
+RUBY_LOCK_GEM_NAMES = ("agenda_cobranca", "ordex_whatsapp")
 
 
 def load_version_yml(path: Path) -> tuple[dict[str, str], Version]:
@@ -100,38 +108,41 @@ def sync_package_versions(root: Path, version: Version) -> list[Path]:
     ver = str(version)
     updated: list[Path] = []
 
-    ruby = root / RUBY_VERSION_RB
-    if ruby.exists():
-        text = ruby.read_text(encoding="utf-8")
-        new_text, n = re.subn(r'VERSION\s*=\s*"[^"]+"', f'VERSION = "{ver}"', text, count=1)
-        if n:
-            ruby.write_text(new_text, encoding="utf-8")
-            updated.append(ruby)
+    for rel in RUBY_VERSION_RBS:
+        ruby = root / rel
+        if ruby.exists():
+            text = ruby.read_text(encoding="utf-8")
+            new_text, n = re.subn(r'VERSION\s*=\s*"[^"]+"', f'VERSION = "{ver}"', text, count=1)
+            if n:
+                ruby.write_text(new_text, encoding="utf-8")
+                updated.append(ruby)
 
-    lock = root / RUBY_GEMFILE_LOCK
-    if lock.exists():
-        text = lock.read_text(encoding="utf-8")
-        new_text, n = re.subn(
-            r"agenda_cobranca \([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\)",
-            f"agenda_cobranca ({ver})",
-            text,
-        )
-        if n:
-            lock.write_text(new_text, encoding="utf-8")
-            updated.append(lock)
+    for rel, gem_name in zip(RUBY_GEMFILE_LOCKS, RUBY_LOCK_GEM_NAMES):
+        lock = root / rel
+        if lock.exists():
+            text = lock.read_text(encoding="utf-8")
+            new_text, n = re.subn(
+                rf"{re.escape(gem_name)} \([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\)",
+                f"{gem_name} ({ver})",
+                text,
+            )
+            if n:
+                lock.write_text(new_text, encoding="utf-8")
+                updated.append(lock)
 
-    csproj = root / CSHARP_CSPROJ
-    if csproj.exists():
-        text = csproj.read_text(encoding="utf-8")
-        new_text, n = re.subn(
-            r"<Version>[^<]*</Version>",
-            f"<Version>{ver}</Version>",
-            text,
-            count=1,
-        )
-        if n:
-            csproj.write_text(new_text, encoding="utf-8")
-            updated.append(csproj)
+    for rel in CSHARP_CSPROJS:
+        csproj = root / rel
+        if csproj.exists():
+            text = csproj.read_text(encoding="utf-8")
+            new_text, n = re.subn(
+                r"<Version>[^<]*</Version>",
+                f"<Version>{ver}</Version>",
+                text,
+                count=1,
+            )
+            if n:
+                csproj.write_text(new_text, encoding="utf-8")
+                updated.append(csproj)
 
     for rel in NODE_PACKAGE_JSONS:
         package_json = root / rel

@@ -12,8 +12,11 @@ Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://gi
 | Linguagem | Pacote | Caminho |
 | --- | --- | --- |
 | Ruby | `agenda_cobranca` (GitHub Packages) | `packages/ruby/agenda_cobranca` |
+| Ruby | `ordex_whatsapp` (add-on SaaS WhatsApp Cloud API) | `packages/ruby/whatsapp` |
 | Go | `agendacobranca.dev/sdk/go` | `packages/go/agenda-cobranca-go` |
+| Go | `agendacobranca.dev/sdk/whatsapp` | `packages/go/whatsapp-go` |
 | C# | `AgendaCobranca.Sdk` (GitHub Packages, .NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
+| C# | `Ordex.WhatsApp.Sdk` (add-on SaaS WhatsApp Cloud API) | `packages/csharp/Ordex.WhatsApp.Sdk` |
 | Node.js | `@ordexsistemas/agenda-cobranca` (GitHub Packages) | `packages/nodejs/agenda-cobranca` |
 | Node.js | `@ordexsistemas/whatsapp-sdk` (add-on SaaS WhatsApp Cloud API) | `packages/nodejs/whatsapp-sdk` |
 
@@ -175,6 +178,8 @@ npm test
 
 Thin client da **API principal do WhatsApp** (Meta Cloud API) para tenants Ordex Pay com o extra WhatsApp. Mede envios por categoria (`auth` / `utility` / `service` / `marketing`) contra as cotas do Cenário Base (~100k transações/mês) e converte o uso na **quantidade de cobranças** da Agenda Financeira.
 
+Os quatro SDKs WhatsApp (Node, C#, Go, Ruby) compartilham as mesmas regras. Detalhes e exemplos: READMEs em `packages/*/…`.
+
 ```ts
 import { StaticEntitlementChecker, WhatsAppClient } from "@ordexsistemas/whatsapp-sdk";
 
@@ -197,13 +202,75 @@ await client.sendTemplate({
 await client.syncCobrancas(); // cria/limita cobranças do período conforme o volume medido
 ```
 
-Cotas default, franquia de 1.000 sessões em `service`, modos `hard`/`soft` e a função `computeCobrancaQuantity`: [`packages/nodejs/whatsapp-sdk/README.md`](packages/nodejs/whatsapp-sdk/README.md).
+### Como o uso vira quantidade de cobranças
+
+1. Aplica franquia (service: 1.000 sessões/mês).
+2. `costUsd = billable * unitCostUsd`; `costBrlCentavos` com `usdToBrl` (default 5,5).
+3. Converte em quantidade na Agenda (`external_reference` = `wa:{tenant}:{period}:{categoria}:{indice}`):
+
+| Strategy | Fórmula | Cenário Base (~100k/mês) |
+| --- | --- | --- |
+| `per-category` (default) | 1 cobrança por categoria faturável | **4** (auth, utility, service, marketing) |
+| `by-sessions` | `ceil(billable / sessionsPerCobranca)` | **12** com 10.000 sessões/cobrança |
+| `by-value` | `ceil(centavos / valorCentavosPorCobranca)` | **24** com R$ 1.000 / cobrança |
+
+`syncCobrancas()` cria as faltantes e **cancela extras** (`create` / `keep` / `cancel`). Prefere o cliente Agenda de cada linguagem (HMAC fica no SDK da Agenda).
+
+Cotas default: auth 40k @ $0,0315 · utility 60k @ $0,0350 · service 5k (4k faturáveis após 1k free) @ $0,0300 · marketing 10k @ $0,0625. Modos `hard`/`soft`.
 
 ```bash
-cd packages/nodejs/whatsapp-sdk
-npm install
-npm test
+cd packages/nodejs/whatsapp-sdk && npm test
+cd packages/csharp/Ordex.WhatsApp.Sdk && dotnet test
+cd packages/go/whatsapp-go && go test ./...
+cd packages/ruby/whatsapp && bundle exec rspec
 ```
+
+## C# — NuGet `Ordex.WhatsApp.Sdk`
+
+```csharp
+services.AddOrdexWhatsApp(options =>
+{
+    options.AccessToken = Environment.GetEnvironmentVariable("WHATSAPP_ACCESS_TOKEN")!;
+    options.PhoneNumberId = Environment.GetEnvironmentVariable("WHATSAPP_PHONE_NUMBER_ID")!;
+    options.TenantId = Environment.GetEnvironmentVariable("ORDEX_PAY_TENANT_ID")!;
+    options.OrdexApiKey = Environment.GetEnvironmentVariable("ORDEX_PAY_API_KEY");
+    options.AgendaPagador = new Pagador("12345678901", "Empresa SaaS");
+    options.Entitlement = new StaticEntitlementChecker(true);
+});
+```
+
+Reutiliza `IAgendaCobrancaClient` se já estiver no DI. README: [`packages/csharp/Ordex.WhatsApp.Sdk/README.md`](packages/csharp/Ordex.WhatsApp.Sdk/README.md).
+
+## Go — módulo `agendacobranca.dev/sdk/whatsapp`
+
+```go
+client, err := whatsapp.NewClient(whatsapp.Options{
+    AccessToken:   os.Getenv("WHATSAPP_ACCESS_TOKEN"),
+    PhoneNumberID: os.Getenv("WHATSAPP_PHONE_NUMBER_ID"),
+    TenantID:      os.Getenv("ORDEX_PAY_TENANT_ID"),
+    OrdexAPIKey:   os.Getenv("ORDEX_PAY_API_KEY"),
+    AgendaPagador: &whatsapp.Pagador{Documento: "12345678901", Nome: "Empresa SaaS"},
+    Entitlement:   whatsapp.StaticEntitlementChecker{Enabled: true},
+})
+```
+
+README: [`packages/go/whatsapp-go/README.md`](packages/go/whatsapp-go/README.md).
+
+## Ruby — gem `ordex_whatsapp`
+
+```ruby
+client = OrdexWhatsApp::Client.new(
+  access_token: ENV.fetch("WHATSAPP_ACCESS_TOKEN"),
+  phone_number_id: ENV.fetch("WHATSAPP_PHONE_NUMBER_ID"),
+  tenant_id: ENV.fetch("ORDEX_PAY_TENANT_ID"),
+  ordex_api_key: ENV["ORDEX_PAY_API_KEY"],
+  agenda_pagador: { documento: "12345678901", nome: "Empresa SaaS" },
+  entitlement: OrdexWhatsApp::StaticEntitlementChecker.new(true)
+)
+```
+
+Initializer Rails: `packages/ruby/whatsapp/examples/rails/ordex_whatsapp.rb`.  
+README: [`packages/ruby/whatsapp/README.md`](packages/ruby/whatsapp/README.md).
 
 ## Testar todos de uma vez
 
@@ -246,35 +313,41 @@ npm i @ordexsistemas/agenda-cobranca
 npm i @ordexsistemas/whatsapp-sdk
 ```
 
-### NuGet — `AgendaCobranca.Sdk`
+### NuGet — `AgendaCobranca.Sdk` e `Ordex.WhatsApp.Sdk`
 
 ```bash
 dotnet nuget add source https://nuget.pkg.github.com/ordexsistemas/index.json \
   --name github --username SEU_USUARIO --password SEU_PAT --store-password-in-clear-text
 dotnet add package AgendaCobranca.Sdk
+dotnet add package Ordex.WhatsApp.Sdk
 ```
 
-### RubyGems — `agenda_cobranca`
+### RubyGems — `agenda_cobranca` e `ordex_whatsapp`
 
 `~/.gem/credentials` (chmod 0600): `:github: Bearer SEU_PAT`
 
 ```ruby
 source "https://rubygems.pkg.github.com/ordexsistemas" do
   gem "agenda_cobranca"
+  gem "ordex_whatsapp"
 end
 ```
 
-### Go — `agendacobranca.dev/sdk/go`
+### Go — `agendacobranca.dev/sdk/go` e `agendacobranca.dev/sdk/whatsapp`
 
-Go não usa card do GitHub Packages. Após o release, o workflow cria o tag `packages/go/agenda-cobranca-go/vX.Y.Z`.
+Go não usa card do GitHub Packages. Após o release, o workflow cria as tags `packages/go/agenda-cobranca-go/vX.Y.Z` e `packages/go/whatsapp-go/vX.Y.Z`.
 
 ```bash
-go get agendacobranca.dev/sdk/go@v0.2.0
+go get agendacobranca.dev/sdk/go@v0.2.1
+go get agendacobranca.dev/sdk/whatsapp@v0.2.1
 ```
 
 Sem vanity DNS:
 
 ```go
-require agendacobranca.dev/sdk/go v0.2.0
-replace agendacobranca.dev/sdk/go => github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/agenda-cobranca-go v0.2.0
+require agendacobranca.dev/sdk/go v0.2.1
+replace agendacobranca.dev/sdk/go => github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/agenda-cobranca-go v0.2.1
+
+require agendacobranca.dev/sdk/whatsapp v0.2.1
+replace agendacobranca.dev/sdk/whatsapp => github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/whatsapp-go v0.2.1
 ```

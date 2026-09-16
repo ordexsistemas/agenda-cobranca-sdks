@@ -163,6 +163,41 @@ jobs:
           gem push --key github --host https://rubygems.pkg.github.com/ordexsistemas \
             "agenda_cobranca-${VERSION}.gem"
 
+  rubygems-whatsapp:
+    name: GitHub Packages RubyGems (ordex_whatsapp)
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: sdk/v${{ needs.resolve.outputs.version }}
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: packages/ruby/whatsapp
+
+      - name: Publish
+        working-directory: packages/ruby/whatsapp
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GITHUB_TOKEN:-}" ]; then
+            echo "::error::GITHUB_TOKEN ausente; impossível publicar no GitHub Packages"
+            exit 1
+          fi
+          mkdir -p "$HOME/.gem"
+          printf '%s\n' ":github: Bearer ${GITHUB_TOKEN}" > "$HOME/.gem/credentials"
+          chmod 0600 "$HOME/.gem/credentials"
+          gem build ordex_whatsapp.gemspec
+          gem push --key github --host https://rubygems.pkg.github.com/ordexsistemas \
+            "ordex_whatsapp-${VERSION}.gem"
+
   nuget:
     name: GitHub Packages NuGet (AgendaCobranca.Sdk)
     needs: resolve
@@ -204,6 +239,47 @@ jobs:
             --source github \
             --skip-duplicate
 
+  nuget-whatsapp:
+    name: GitHub Packages NuGet (Ordex.WhatsApp.Sdk)
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: sdk/v${{ needs.resolve.outputs.version }}
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish
+        working-directory: packages/csharp/Ordex.WhatsApp.Sdk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GITHUB_TOKEN:-}" ]; then
+            echo "::error::GITHUB_TOKEN ausente; impossível publicar no GitHub Packages"
+            exit 1
+          fi
+          SOURCE="https://nuget.pkg.github.com/ordexsistemas/index.json"
+          dotnet nuget add source "$SOURCE" \
+            --name github \
+            --username "${{ github.actor }}" \
+            --password "$GITHUB_TOKEN" \
+            --store-password-in-clear-text
+          dotnet pack src/Ordex.WhatsApp.Sdk/Ordex.WhatsApp.Sdk.csproj \
+            -c Release \
+            --output nupkgs \
+            -p:PackageVersion="$VERSION"
+          dotnet nuget push nupkgs/*.nupkg \
+            --api-key "$GITHUB_TOKEN" \
+            --source github \
+            --skip-duplicate
+
   go:
     name: Go module (tag de subdiretório)
     needs: resolve
@@ -225,28 +301,32 @@ jobs:
           VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          cd packages/go/agenda-cobranca-go
-          go test ./...
-          MODULE=$(grep '^module ' go.mod | awk '{print $2}')
-          echo "module=$MODULE"
-          if [ "$MODULE" != "agendacobranca.dev/sdk/go" ]; then
-            echo "::warning::module path inesperado: $MODULE"
-          fi
+          tag_go_module() {
+            local dir="$1"
+            local expected="$2"
+            cd "$GITHUB_WORKSPACE/$dir"
+            go test ./...
+            MODULE=$(grep '^module ' go.mod | awk '{print $2}')
+            echo "module=$MODULE ($dir)"
+            if [ "$MODULE" != "$expected" ]; then
+              echo "::warning::module path inesperado em $dir: $MODULE (esperado $expected)"
+            fi
+            cd "$GITHUB_WORKSPACE"
+            GO_TAG="${dir}/v${VERSION}"
+            if git rev-parse "$GO_TAG" >/dev/null 2>&1; then
+              echo "Tag $GO_TAG já existe"
+            else
+              git tag -a "$GO_TAG" -m "Go module ${MODULE} v${VERSION}"
+              git push origin "$GO_TAG"
+              echo "Criada tag $GO_TAG"
+            fi
+            curl -fsS "https://proxy.golang.org/${MODULE}/@v/v${VERSION}.info" \
+              && echo "proxy.golang.org indexou ${MODULE}@v${VERSION}" \
+              || echo "::warning::proxy.golang.org ainda não resolve ${MODULE}@v${VERSION} (vanity DNS ou tag). Ver README (GitHub Packages)."
+          }
 
-          cd "$GITHUB_WORKSPACE"
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          GO_TAG="packages/go/agenda-cobranca-go/v${VERSION}"
-          if git rev-parse "$GO_TAG" >/dev/null 2>&1; then
-            echo "Tag $GO_TAG já existe"
-          else
-            git tag -a "$GO_TAG" -m "Go module agendacobranca.dev/sdk/go v${VERSION}"
-            git push origin "$GO_TAG"
-            echo "Criada tag $GO_TAG"
-          fi
-
-          # Best-effort: indexa no proxy (falha sem vanity DNS não quebra o job).
-          curl -fsS "https://proxy.golang.org/${MODULE}/@v/v${VERSION}.info" \
-            && echo "proxy.golang.org indexou v${VERSION}" \
-            || echo "::warning::proxy.golang.org ainda não resolve ${MODULE}@v${VERSION} (vanity DNS ou tag). Ver README (GitHub Packages)."
+          tag_go_module "packages/go/agenda-cobranca-go" "agendacobranca.dev/sdk/go"
+          tag_go_module "packages/go/whatsapp-go" "agendacobranca.dev/sdk/whatsapp"

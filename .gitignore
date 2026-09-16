@@ -1,11 +1,11 @@
 # Ruby
-packages/ruby/agenda_cobranca/.bundle/
-packages/ruby/agenda_cobranca/vendor/
-packages/ruby/agenda_cobranca/spec/examples.txt
+packages/ruby/**/.bundle/
+packages/ruby/**/vendor/
+packages/ruby/**/spec/examples.txt
 *.gem
 
 # Go
-packages/go/agenda-cobranca-go/coverage.out
+packages/go/**/coverage.out
 
 # .NET
 packages/csharp/**/bin/
