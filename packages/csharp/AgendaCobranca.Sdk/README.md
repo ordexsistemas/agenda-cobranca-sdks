@@ -1,14 +1,13 @@
 # AgendaCobranca.Sdk
 
-Pacote NuGet (.NET 8) da Agenda Cobrança API. Um `DelegatingHandler` assina cada request; `AddAgendaCobranca` registra o cliente no `IHttpClientFactory`.
+Pacote NuGet (.NET 8) da API externa Ordex Pay / Agenda Financeira.
+No uso basico basta `ApiKey` (+ `BaseUrl` opcional). HMAC e opcional (`SigningEnabled`, OFF por padrao).
 
 ```csharp
 services.AddAgendaCobranca(options =>
 {
-    options.ClientId = Environment.GetEnvironmentVariable("AGENDA_COBRANCA_CLIENT_ID")!;
-    options.ApiKey = Environment.GetEnvironmentVariable("AGENDA_COBRANCA_API_KEY")!;
-    options.ClientSecret = Environment.GetEnvironmentVariable("AGENDA_COBRANCA_CLIENT_SECRET")!;
-    options.BaseUrl = "https://api.agendacobranca.example/v1";
+    options.ApiKey = Environment.GetEnvironmentVariable("ORDEX_PAY_API_KEY")!;
+    // options.BaseUrl = Environment.GetEnvironmentVariable("ORDEX_PAY_BASE_URL"); // opcional
 });
 
 var cobranca = await client.CreateCobrancaAsync(new CreateCobrancaRequest(
@@ -18,6 +17,8 @@ var cobranca = await client.CreateCobrancaAsync(new CreateCobrancaRequest(
     ExternalReference: "pedido-1001",
     IdempotencyKey: "pedido-1001-cobranca"));
 ```
+
+Toda request envia `chave_api` e `X-Api-Key`. Com `SigningEnabled = true`, tambem envia os headers HMAC.
 
 ```bash
 dotnet test

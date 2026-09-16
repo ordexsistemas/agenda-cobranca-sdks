@@ -6,29 +6,27 @@ import (
 	"time"
 )
 
-const DefaultBaseURL = "https://api.agendacobranca.example/v1"
+const DefaultBaseURL = "https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo"
 
 type Options struct {
-	ClientID                 string
-	APIKey                   string
-	ClientSecret             string
-	BaseURL                  string
-	HTTPClient               *http.Client
-	Timeout                  time.Duration
-	VerifyLicenseOnInit      bool
-	Clock                    Clock
-	NonceGenerator           NonceGenerator
+	APIKey              string
+	BaseURL             string
+	ClientID            string
+	ClientSecret        string
+	SigningEnabled      bool
+	HTTPClient          *http.Client
+	Timeout             time.Duration
+	VerifyLicenseOnInit bool
+	Clock               Clock
+	NonceGenerator      NonceGenerator
 }
 
 func (o Options) validar() error {
 	var faltando []string
-	if strings.TrimSpace(o.ClientID) == "" {
-		faltando = append(faltando, "ClientID")
-	}
 	if strings.TrimSpace(o.APIKey) == "" {
 		faltando = append(faltando, "APIKey")
 	}
-	if strings.TrimSpace(o.ClientSecret) == "" {
+	if o.SigningEnabled && strings.TrimSpace(o.ClientSecret) == "" {
 		faltando = append(faltando, "ClientSecret")
 	}
 	if len(faltando) > 0 {
