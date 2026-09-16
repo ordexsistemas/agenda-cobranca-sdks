@@ -7,15 +7,18 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
-### Added
-- Autenticação por `api_key` apenas (headers `chave_api` + `X-Api-Key`)
-- HMAC opcional (`signing_enabled` / `SigningEnabled`, OFF por padrão)
-- Base URL padrão HML Ordex Pay (`/api/v2/externo`)
-- Guia de integração: `docs/integracao-ordex-pay.md`
-- Versionamento SemVer via `tools/versionamento` + workflow GitHub Actions
+
+## [0.2.0] - 2026-09-16
 
 ### Changed
-- Ruby, Go e C#: `client_id` / `client_secret` não são mais obrigatórios no uso básico
+- Merge pull request #1 from ordexsistemas/feat/api-key-only
+- chore: add SemVer versionamento tooling and GitHub Actions
+- feat: api_key-only auth for Ruby, Go, and C# SDKs
+- chore: resolve LICENSE merge (MIT Ordex Sistemas)
+- chore: add MIT License (Ordex Sistemas)
+- Initial commit
+- feat: scaffold dos SDKs Ruby, Go e C# da Agenda Cobranca API
+- Initialize project
 
 ## [0.1.0] - 2026-09-15
 
