@@ -1,0 +1,202 @@
+name: Publish SDKs
+
+on:
+  push:
+    tags:
+      - "sdk/v*"
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão SemVer sem prefixo (ex: 0.2.0). Vazio = tag atual ou VERSION.yml"
+        required: false
+        type: string
+  workflow_call:
+    inputs:
+      version:
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  resolve:
+    name: Resolver versão
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.out.outputs.version }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Resolver
+        id: out
+        env:
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          VER="${INPUT_VERSION:-}"
+          if [ -z "$VER" ] && [[ "${GITHUB_REF:-}" == refs/tags/sdk/v* ]]; then
+            VER="${GITHUB_REF_NAME#sdk/v}"
+          fi
+          if [ -z "$VER" ]; then
+            VER=$(python3 -c "from pathlib import Path; import sys; sys.path.insert(0,'.'); from tools.versionamento.files import load_version_yml; print(load_version_yml(Path('VERSION.yml'))[1])")
+          fi
+          if ! [[ "$VER" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "Versão inválida: $VER" >&2
+            exit 1
+          fi
+          echo "version=$VER" >> "$GITHUB_OUTPUT"
+          echo "Publicando SDKs v$VER"
+
+  npm:
+    name: npm (agenda-cobranca)
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: sdk/v${{ needs.resolve.outputs.version }}
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          registry-url: https://registry.npmjs.org
+
+      - name: Publish
+        working-directory: packages/nodejs/agenda-cobranca
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
+            echo "::warning::NPM_TOKEN ausente; pulando npm publish"
+            exit 0
+          fi
+          npm ci
+          npm test
+          npm run build
+          CURRENT=$(npm view agenda-cobranca version 2>/dev/null || true)
+          if [ "$CURRENT" = "$VERSION" ]; then
+            echo "agenda-cobranca@$VERSION já publicado"
+            exit 0
+          fi
+          npm publish --access public
+
+  rubygems:
+    name: RubyGems (agenda_cobranca)
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: sdk/v${{ needs.resolve.outputs.version }}
+          fetch-depth: 0
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: packages/ruby/agenda_cobranca
+
+      - name: Publish
+        working-directory: packages/ruby/agenda_cobranca
+        env:
+          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY || secrets.GEM_HOST_API_KEY }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${GEM_HOST_API_KEY:-}" ]; then
+            echo "::warning::RUBYGEMS_API_KEY/GEM_HOST_API_KEY ausente; pulando gem push"
+            exit 0
+          fi
+          gem build agenda_cobranca.gemspec
+          gem push "agenda_cobranca-${VERSION}.gem"
+
+  nuget:
+    name: NuGet (AgendaCobranca.Sdk)
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: sdk/v${{ needs.resolve.outputs.version }}
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+
+      - name: Publish
+        working-directory: packages/csharp/AgendaCobranca.Sdk
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          if [ -z "${NUGET_API_KEY:-}" ]; then
+            echo "::warning::NUGET_API_KEY ausente; pulando nuget push"
+            exit 0
+          fi
+          dotnet pack src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj \
+            -c Release \
+            --output nupkgs \
+            -p:PackageVersion="$VERSION"
+          dotnet nuget push nupkgs/*.nupkg \
+            --api-key "$NUGET_API_KEY" \
+            --source https://api.nuget.org/v3/index.json \
+            --skip-duplicate
+
+  go:
+    name: Go module (tag de subdiretório)
+    needs: resolve
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout tag
+        uses: actions/checkout@v4
+        with:
+          ref: sdk/v${{ needs.resolve.outputs.version }}
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+
+      - name: Test + tag de módulo + proxy
+        env:
+          VERSION: ${{ needs.resolve.outputs.version }}
+        run: |
+          set -euo pipefail
+          cd packages/go/agenda-cobranca-go
+          go test ./...
+          MODULE=$(grep '^module ' go.mod | awk '{print $2}')
+          echo "module=$MODULE"
+          if [ "$MODULE" != "agendacobranca.dev/sdk/go" ]; then
+            echo "::warning::module path inesperado: $MODULE"
+          fi
+
+          cd "$GITHUB_WORKSPACE"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          GO_TAG="packages/go/agenda-cobranca-go/v${VERSION}"
+          if git rev-parse "$GO_TAG" >/dev/null 2>&1; then
+            echo "Tag $GO_TAG já existe"
+          else
+            git tag -a "$GO_TAG" -m "Go module agendacobranca.dev/sdk/go v${VERSION}"
+            git push origin "$GO_TAG"
+            echo "Criada tag $GO_TAG"
+          fi
+
+          # Best-effort: indexa no proxy (falha sem vanity DNS não quebra o job).
+          curl -fsS "https://proxy.golang.org/${MODULE}/@v/v${VERSION}.info" \
+            && echo "proxy.golang.org indexou v${VERSION}" \
+            || echo "::warning::proxy.golang.org ainda não resolve ${MODULE}@v${VERSION} (vanity DNS ou tag). Ver docs/publishing.md"

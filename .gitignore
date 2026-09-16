@@ -10,7 +10,10 @@ packages/go/agenda-cobranca-go/coverage.out
 # .NET
 packages/csharp/**/bin/
 packages/csharp/**/obj/
+packages/csharp/**/nupkgs/
 *.user
+*.nupkg
+*.snupkg
 
 # Ambiente
 .env
@@ -30,3 +33,10 @@ uploads/
 __pycache__/
 *.py[cod]
 .Python
+
+# Node
+packages/nodejs/**/node_modules/
+packages/nodejs/**/dist/
+packages/nodejs/**/coverage/
+packages/nodejs/**/*.tsbuildinfo
+packages/nodejs/**/*.tgz

@@ -2,11 +2,11 @@
 
 ## Camada atual (thin clients)
 
-Ruby (`agenda_cobranca`), Go (`agenda-cobranca-go`) e C# (`AgendaCobranca.Sdk`) falam HTTPS com a API externa Ordex Pay.
+Ruby (`agenda_cobranca`), Go (`agendacobranca.dev/sdk/go`), C# (`AgendaCobranca.Sdk`) e Node.js (`agenda-cobranca`) falam HTTPS com a API externa Ordex Pay.
 
 ```
 App do cliente
-    → SDK (Ruby | Go | C#)
+    → SDK (Ruby | Go | C# | Node.js)
         → HTTPS + headers chave_api / X-Api-Key
             → API (https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo)
 ```
@@ -23,7 +23,7 @@ HMAC (`signing_enabled` / `SigningEnabled`) fica **OFF** por padrão. Sem HMAC, 
 
 ## Canonical string HMAC (quando habilitado)
 
-Idêntica nas três linguagens:
+Idêntica nas quatro linguagens:
 
 ```
 canonical_string = METHOD + "\n" + PATH + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + HASH_SHA256(REQUEST_BODY)
@@ -61,6 +61,7 @@ Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`): ver [`integracao
 | Ruby | Faraday middleware `Security::SigningMiddleware` |
 | Go | `http.RoundTripper` em `security.go` |
 | C# | `SigningDelegatingHandler` + `AddAgendaCobranca` |
+| Node.js | `Client.request` (headers HMAC quando `signingEnabled`) |
 
 ## Integração portal
 

@@ -1,6 +1,6 @@
 # Vetores HMAC compartilhados
 
-Use estes valores nos testes das três linguagens. Qualquer divergência significa canonical string diferente.
+Use estes valores nos testes das quatro linguagens. Qualquer divergência significa canonical string diferente.
 
 ## Constantes
 

@@ -18,7 +18,7 @@ import subprocess
 import sys
 from pathlib import Path
 
-from .files import load_version_yml, update_changelog, write_version_yml
+from .files import load_version_yml, sync_package_versions, update_changelog, write_version_yml
 from .gitutil import (
     annotated_tag,
     commit_all,
@@ -70,7 +70,9 @@ def cmd_bump(args: argparse.Namespace) -> int:
 
     write_version_yml(version_path, data, new_ver)
     update_changelog(changelog_path, new_ver, notes)
-    print(f"atualizado VERSION.yml e CHANGELOG.md → {new_ver}")
+    synced = sync_package_versions(root, new_ver)
+    extra = f" + {len(synced)} pacote(s)" if synced else ""
+    print(f"atualizado VERSION.yml, CHANGELOG.md{extra} → {new_ver}")
     return 0
 
 
@@ -93,6 +95,7 @@ def cmd_release(args: argparse.Namespace) -> int:
 
     write_version_yml(version_path, data, new_ver)
     update_changelog(changelog_path, new_ver, notes)
+    sync_package_versions(root, new_ver)
 
     if os.environ.get("CI") or args.configure_git:
         configure_user(root)

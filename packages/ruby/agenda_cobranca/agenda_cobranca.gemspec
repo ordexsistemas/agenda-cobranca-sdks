@@ -5,18 +5,20 @@ require_relative "lib/agenda_cobranca/version"
 Gem::Specification.new do |spec|
   spec.name = "agenda_cobranca"
   spec.version = AgendaCobranca::VERSION
-  spec.authors = ["Agenda Cobranca"]
-  spec.email = ["devs@agendacobranca.example"]
+  spec.authors = ["Ordex Sistemas"]
 
   spec.summary = "Thin client Ruby para a Agenda Cobranca API"
   spec.description = <<~DESC
-    SDK Ruby com assinatura HMAC-SHA256 (X-Client-Id, X-Timestamp, X-Nonce, X-Signature)
-    para a Agenda Cobranca API. Thin client: HTTP direto para a API ou para um
-    Security Gateway configuravel via base_url.
+    SDK Ruby com autenticação por api_key (HMAC-SHA256 opcional) para a
+    API externa Ordex Pay / Agenda Financeira.
   DESC
-  spec.homepage = "https://agendacobranca.example"
+  spec.homepage = "https://github.com/ordexsistemas/agenda-cobranca-sdks"
+  spec.license = "MIT"
   spec.required_ruby_version = ">= 3.1.0"
-  spec.metadata["source_code_uri"] = "https://agendacobranca.example"
+  spec.metadata["homepage_uri"] = spec.homepage
+  spec.metadata["source_code_uri"] = "https://github.com/ordexsistemas/agenda-cobranca-sdks"
+  spec.metadata["changelog_uri"] = "https://github.com/ordexsistemas/agenda-cobranca-sdks/blob/main/CHANGELOG.md"
+  spec.metadata["allowed_push_host"] = "https://rubygems.org"
 
   spec.files = Dir.chdir(__dir__) do
     Dir["lib/**/*", "examples/**/*", "README.md"].select { |path| File.file?(path) }

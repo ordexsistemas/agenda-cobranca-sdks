@@ -3,6 +3,10 @@
 Pacote NuGet (.NET 8) da API externa Ordex Pay / Agenda Financeira.
 No uso basico basta `ApiKey` (+ `BaseUrl` opcional). HMAC e opcional (`SigningEnabled`, OFF por padrao).
 
+```bash
+dotnet add package AgendaCobranca.Sdk
+```
+
 ```csharp
 services.AddAgendaCobranca(options =>
 {

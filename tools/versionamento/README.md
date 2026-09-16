@@ -4,8 +4,11 @@ CLI portátil (Python stdlib) inspirada no `clic_versionamento`:
 
 - Lê/atualiza `VERSION.yml` (component `sdk`, product "Ordex Pay SDKs")
 - Atualiza `CHANGELOG.md` (Keep a Changelog)
+- Sincroniza a versão nos pacotes Ruby (`version.rb`), C# (`.csproj`) e Node (`package.json`)
 - Cria tag anotada `sdk/vX.Y.Z`
 - Opcionalmente faz push e `gh release create`
+
+O módulo Go (`agendacobranca.dev/sdk/go`) não tem campo de versão no `go.mod`; o workflow de publish cria a tag de subdiretório `packages/go/agenda-cobranca-go/vX.Y.Z`. Ver [`docs/publishing.md`](../../docs/publishing.md).
 
 ## Uso local
 
@@ -26,3 +29,4 @@ CLI portátil (Python stdlib) inspirada no `clic_versionamento`:
 ## Actions
 
 Workflow: `.github/workflows/versionamento.yml` (`workflow_dispatch`).
+Após o tag, chama [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) (RubyGems, NuGet, npm, tag Go). Secrets: [`docs/publishing.md`](../../docs/publishing.md).

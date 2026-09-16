@@ -1,12 +1,20 @@
-"""Read/write VERSION.yml and CHANGELOG.md."""
+"""Read/write VERSION.yml, CHANGELOG.md, and package versions."""
 
 from __future__ import annotations
 
+import json
 import re
 from datetime import date
 from pathlib import Path
 
 from .semver import Version, parse
+
+# Keep language packages aligned with VERSION.yml on bump/release.
+RUBY_VERSION_RB = Path("packages/ruby/agenda_cobranca/lib/agenda_cobranca/version.rb")
+CSHARP_CSPROJ = Path(
+    "packages/csharp/AgendaCobranca.Sdk/src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj"
+)
+NODE_PACKAGE_JSON = Path("packages/nodejs/agenda-cobranca/package.json")
 
 
 def load_version_yml(path: Path) -> tuple[dict[str, str], Version]:
@@ -77,3 +85,48 @@ def update_changelog(path: Path, version: Version, notes: list[str], today: date
         text = "# Changelog\n\n## [Unreleased]\n\n" + text
 
     path.write_text(text, encoding="utf-8")
+
+
+def sync_package_versions(root: Path, version: Version) -> list[Path]:
+    """Write the monorepo version into Ruby/C#/Node package metadata.
+
+    Go modules are identified by git tags (see docs/publishing.md), not a
+    version field in go.mod. Returns paths that were updated.
+    """
+    ver = str(version)
+    updated: list[Path] = []
+
+    ruby = root / RUBY_VERSION_RB
+    if ruby.exists():
+        text = ruby.read_text(encoding="utf-8")
+        new_text, n = re.subn(r'VERSION\s*=\s*"[^"]+"', f'VERSION = "{ver}"', text, count=1)
+        if n:
+            ruby.write_text(new_text, encoding="utf-8")
+            updated.append(ruby)
+
+    csproj = root / CSHARP_CSPROJ
+    if csproj.exists():
+        text = csproj.read_text(encoding="utf-8")
+        new_text, n = re.subn(
+            r"<Version>[^<]*</Version>",
+            f"<Version>{ver}</Version>",
+            text,
+            count=1,
+        )
+        if n:
+            csproj.write_text(new_text, encoding="utf-8")
+            updated.append(csproj)
+
+    package_json = root / NODE_PACKAGE_JSON
+    if package_json.exists():
+        data = json.loads(package_json.read_text(encoding="utf-8"))
+        if data.get("version") != ver:
+            data["version"] = ver
+            package_json.write_text(
+                json.dumps(data, indent=2, ensure_ascii=False) + "\n",
+                encoding="utf-8",
+            )
+            updated.append(package_json)
+
+    return updated
+

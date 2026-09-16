@@ -41,6 +41,7 @@ HMAC fica **desligado** por padrão. Só ative se o contrato/integração exigir
 - Ruby: `config.signing_enabled = true` (+ `client_secret`)
 - Go: `SigningEnabled: true` (+ `ClientSecret`)
 - C#: `SigningEnabled = true` (+ `ClientSecret`)
+- Node.js: `signingEnabled: true` (+ `clientSecret`)
 
 Nesse modo também são enviados `X-Client-Id`, `X-Timestamp`, `X-Nonce` e `X-Signature`. Sem HMAC, esses headers **não** são enviados.
 
@@ -50,8 +51,9 @@ Nesse modo também são enviados `X-Client-Id`, `X-Timestamp`, `X-Nonce` e `X-Si
 
 ```ruby
 # Gemfile
-gem "agenda_cobranca", path: "packages/ruby/agenda_cobranca"
-# ou versão publicada no registry privado
+gem "agenda_cobranca"
+# ou, no monorepo:
+# gem "agenda_cobranca", path: "packages/ruby/agenda_cobranca"
 ```
 
 ```bash
@@ -61,8 +63,11 @@ bundle install
 ### Go
 
 ```bash
-go get github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/agenda-cobranca-go
-# ou use o módulo local do monorepo: packages/go/agenda-cobranca-go
+# Vanity (quando agendacobranca.dev responder go-get=1):
+go get agendacobranca.dev/sdk/go@v0.2.0
+
+# Sem vanity: use replace para o caminho GitHub — ver docs/publishing.md
+# go get github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/agenda-cobranca-go@v0.2.0
 ```
 
 ### C# (.NET 8)
@@ -70,6 +75,12 @@ go get github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/agenda-cobranca
 ```bash
 dotnet add package AgendaCobranca.Sdk
 # ou referência de projeto: packages/csharp/AgendaCobranca.Sdk
+```
+
+### Node.js
+
+```bash
+npm install agenda-cobranca
 ```
 
 ## 4. Exemplos mínimos (só `api_key`)
@@ -135,6 +146,25 @@ var cobranca = await client.CreateCobrancaAsync(new CreateCobrancaRequest(
     Pagador: new Pagador("12345678901", "Maria Silva", "maria@example.com"),
     ExternalReference: "pedido-1001",
     IdempotencyKey: "pedido-1001-cobranca"));
+```
+
+### Node.js
+
+```ts
+import { Client } from "agenda-cobranca";
+
+const client = new Client({
+  apiKey: process.env.ORDEX_PAY_API_KEY!,
+  // baseUrl: process.env.ORDEX_PAY_BASE_URL, // opcional
+});
+
+const cobranca = await client.cobrancas.create({
+  externalReference: "pedido-1001",
+  valorCentavos: 15_000,
+  vencimento: "2026-10-01",
+  pagador: { documento: "12345678901", nome: "Maria Silva", email: "maria@example.com" },
+  idempotencyKey: "pedido-1001-cobranca",
+});
 ```
 
 ## 5. Endpoints relativos a `base_url`

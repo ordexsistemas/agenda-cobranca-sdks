@@ -7,13 +7,13 @@ No uso basico basta `api_key` (+ `base_url` opcional). HMAC e opcional e fica OF
 
 ```ruby
 # Gemfile
-gem "agenda_cobranca", path: "../../packages/ruby/agenda_cobranca"
+gem "agenda_cobranca"
 ```
 
-Ou, apos publicar no registry privado:
+No monorepo:
 
 ```ruby
-gem "agenda_cobranca", "0.1.0"
+gem "agenda_cobranca", path: "../../packages/ruby/agenda_cobranca"
 ```
 
 ```bash
