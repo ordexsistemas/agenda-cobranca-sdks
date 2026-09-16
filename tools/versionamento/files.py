@@ -11,6 +11,7 @@ from .semver import Version, parse
 
 # Keep language packages aligned with VERSION.yml on bump/release.
 RUBY_VERSION_RB = Path("packages/ruby/agenda_cobranca/lib/agenda_cobranca/version.rb")
+RUBY_GEMFILE_LOCK = Path("packages/ruby/agenda_cobranca/Gemfile.lock")
 CSHARP_CSPROJ = Path(
     "packages/csharp/AgendaCobranca.Sdk/src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj"
 )
@@ -103,6 +104,18 @@ def sync_package_versions(root: Path, version: Version) -> list[Path]:
         if n:
             ruby.write_text(new_text, encoding="utf-8")
             updated.append(ruby)
+
+    lock = root / RUBY_GEMFILE_LOCK
+    if lock.exists():
+        text = lock.read_text(encoding="utf-8")
+        new_text, n = re.subn(
+            r"agenda_cobranca \([0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?\)",
+            f"agenda_cobranca ({ver})",
+            text,
+        )
+        if n:
+            lock.write_text(new_text, encoding="utf-8")
+            updated.append(lock)
 
     csproj = root / CSHARP_CSPROJ
     if csproj.exists():
