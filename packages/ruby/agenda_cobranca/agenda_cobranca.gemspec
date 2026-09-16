@@ -18,7 +18,7 @@ Gem::Specification.new do |spec|
   spec.metadata["homepage_uri"] = spec.homepage
   spec.metadata["source_code_uri"] = "https://github.com/ordexsistemas/agenda-cobranca-sdks"
   spec.metadata["changelog_uri"] = "https://github.com/ordexsistemas/agenda-cobranca-sdks/blob/main/CHANGELOG.md"
-  spec.metadata["allowed_push_host"] = "https://rubygems.org"
+  spec.metadata["allowed_push_host"] = "https://rubygems.pkg.github.com/ordexsistemas"
 
   spec.files = Dir.chdir(__dir__) do
     Dir["lib/**/*", "examples/**/*", "README.md"].select { |path| File.file?(path) }

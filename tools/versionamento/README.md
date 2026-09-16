@@ -29,4 +29,4 @@ O módulo Go (`agendacobranca.dev/sdk/go`) não tem campo de versão no `go.mod`
 ## Actions
 
 Workflow: `.github/workflows/versionamento.yml` (`workflow_dispatch`).
-Após o tag, chama [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) (RubyGems, NuGet, npm, tag Go). Secrets: [`docs/publishing.md`](../../docs/publishing.md).
+Após o tag, chama [`.github/workflows/publish.yml`](../../.github/workflows/publish.yml) (GitHub Packages: npm, NuGet, RubyGems + tag Go). Ver [`docs/publishing.md`](../../docs/publishing.md).

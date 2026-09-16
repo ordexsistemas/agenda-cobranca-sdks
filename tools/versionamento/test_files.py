@@ -25,7 +25,7 @@ class SyncPackageVersionsTest(unittest.TestCase):
             ruby.write_text('module AgendaCobranca\n  VERSION = "0.1.0"\nend\n', encoding="utf-8")
             lock.write_text("PATH\n  specs:\n    agenda_cobranca (0.1.0)\n\nCHECKSUMS\n  agenda_cobranca (0.1.0)\n", encoding="utf-8")
             csharp.write_text("<Project><Version>0.1.0</Version></Project>\n", encoding="utf-8")
-            node.write_text(json.dumps({"name": "@ordex/agenda-cobranca", "version": "0.1.0"}, indent=2) + "\n", encoding="utf-8")
+            node.write_text(json.dumps({"name": "@ordexsistemas/agenda-cobranca", "version": "0.1.0"}, indent=2) + "\n", encoding="utf-8")
 
             updated = sync_package_versions(root, parse("0.2.0"))
             self.assertEqual(len(updated), 4)

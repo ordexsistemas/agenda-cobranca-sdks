@@ -21,6 +21,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   release:
@@ -75,9 +76,12 @@ jobs:
           echo "Tag criada a partir de VERSION.yml (component sdk)."
 
   publish:
-    name: Publicar nos registries
+    name: Publicar no GitHub Packages
     needs: release
     uses: ./.github/workflows/publish.yml
     with:
       version: ${{ needs.release.outputs.version }}
     secrets: inherit
+    permissions:
+      contents: write
+      packages: write

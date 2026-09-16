@@ -3,7 +3,10 @@
 Pacote NuGet (.NET 8) da API externa Ordex Pay / Agenda Financeira.
 No uso basico basta `ApiKey` (+ `BaseUrl` opcional). HMAC e opcional (`SigningEnabled`, OFF por padrao).
 
+Publicado no **GitHub Packages**. Source e PAT: [`docs/publishing.md`](../../../docs/publishing.md).
+
 ```bash
+dotnet nuget add source https://nuget.pkg.github.com/ordexsistemas/index.json --name github --username USER --password PAT --store-password-in-clear-text
 dotnet add package AgendaCobranca.Sdk
 ```
 
