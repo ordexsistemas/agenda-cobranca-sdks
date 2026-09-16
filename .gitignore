@@ -29,6 +29,9 @@ packages/csharp/**/nupkgs/
 # Uploads locais da sessao
 uploads/
 
+# Documentação local (não versionar)
+docs/
+
 # Python (tools/versionamento)
 __pycache__/
 *.py[cod]

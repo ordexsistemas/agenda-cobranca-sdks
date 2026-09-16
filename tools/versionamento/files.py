@@ -91,7 +91,7 @@ def update_changelog(path: Path, version: Version, notes: list[str], today: date
 def sync_package_versions(root: Path, version: Version) -> list[Path]:
     """Write the monorepo version into Ruby/C#/Node package metadata.
 
-    Go modules are identified by git tags (see docs/publishing.md), not a
+    Go modules are identified by git tags (see root README), not a
     version field in go.mod. Returns paths that were updated.
     """
     ver = str(version)

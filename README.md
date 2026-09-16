@@ -4,7 +4,7 @@ Monorepo com thin clients da API externa Ordex Pay / Agenda Financeira (Ruby, Go
 
 **Uso básico:** só `api_key` (+ `base_url` opcional). HMAC é opcional e fica **OFF** por padrão.
 
-Guia de integração para o portal: [`docs/integracao-ordex-pay.md`](docs/integracao-ordex-pay.md).  
+Guia de integração e vetores HMAC ficam fora do git (`docs/` é local).  
 Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://github.com/ordexsistemas/agenda-cobranca-sdks)
 
 ## Pacotes
@@ -16,9 +16,8 @@ Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://gi
 | C# | `AgendaCobranca.Sdk` (GitHub Packages, .NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
 | Node.js | `@ordexsistemas/agenda-cobranca` (GitHub Packages) | `packages/nodejs/agenda-cobranca` |
 
-Documentação de arquitetura: [`docs/architecture.md`](docs/architecture.md).  
-Vetores HMAC: [`docs/hmac-test-vectors.md`](docs/hmac-test-vectors.md).  
-Publicação (GitHub Packages + Go): [`docs/publishing.md`](docs/publishing.md).
+Documentação de arquitetura e vetores HMAC: pasta local `docs/` (não versionada).  
+Instalação via GitHub Packages: seção [GitHub Packages](#github-packages) abaixo.
 
 ## Autenticação (padrão)
 
@@ -180,7 +179,7 @@ make test
 ## Endpoints
 
 Cobranças (CRUD + cancel), `POST /licenses/verify` e `Webhooks.Verify` local.  
-Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`) estão documentados em [`docs/integracao-ordex-pay.md`](docs/integracao-ordex-pay.md).
+Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`) existem no contrato Ordex Pay; os thin clients não expõem helpers dedicados para todos eles.
 
 ## Versionamento
 
@@ -190,4 +189,56 @@ Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`) estão documentad
 - Actions: `.github/workflows/versionamento.yml` (`workflow_dispatch`, bump auto|patch|minor|major)
 
 Tag anotada: `sdk/vX.Y.Z`. Detalhes: [`tools/versionamento/README.md`](tools/versionamento/README.md).  
-Após a tag, [`.github/workflows/publish.yml`](.github/workflows/publish.yml) publica gem / nupkg / npm no **GitHub Packages** e cria o tag Go de subdiretório. Detalhes: [`docs/publishing.md`](docs/publishing.md).
+Após a tag, [`.github/workflows/publish.yml`](.github/workflows/publish.yml) publica gem / nupkg / npm no **GitHub Packages** e cria o tag Go de subdiretório. Instalação: [GitHub Packages](#github-packages).
+
+## GitHub Packages
+
+Não publicamos em nuget.org, npmjs.com nem RubyGems.org. O workflow usa `GITHUB_TOKEN` com `contents: write` e `packages: write` — sem `NPM_TOKEN` / `NUGET_API_KEY` / `RUBYGEMS_API_KEY`.
+
+Os pacotes **herdam a visibilidade do repositório**. Se o repo for privado, o consumidor precisa de um PAT com `read:packages` (e `repo` se o pacote estiver ligado a um repositório privado).
+
+### npm — `@ordexsistemas/agenda-cobranca`
+
+`.npmrc`:
+
+```ini
+@ordexsistemas:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=SEU_PAT
+```
+
+```bash
+npm i @ordexsistemas/agenda-cobranca
+```
+
+### NuGet — `AgendaCobranca.Sdk`
+
+```bash
+dotnet nuget add source https://nuget.pkg.github.com/ordexsistemas/index.json \
+  --name github --username SEU_USUARIO --password SEU_PAT --store-password-in-clear-text
+dotnet add package AgendaCobranca.Sdk
+```
+
+### RubyGems — `agenda_cobranca`
+
+`~/.gem/credentials` (chmod 0600): `:github: Bearer SEU_PAT`
+
+```ruby
+source "https://rubygems.pkg.github.com/ordexsistemas" do
+  gem "agenda_cobranca"
+end
+```
+
+### Go — `agendacobranca.dev/sdk/go`
+
+Go não usa card do GitHub Packages. Após o release, o workflow cria o tag `packages/go/agenda-cobranca-go/vX.Y.Z`.
+
+```bash
+go get agendacobranca.dev/sdk/go@v0.2.0
+```
+
+Sem vanity DNS:
+
+```go
+require agendacobranca.dev/sdk/go v0.2.0
+replace agendacobranca.dev/sdk/go => github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/agenda-cobranca-go v0.2.0
+```

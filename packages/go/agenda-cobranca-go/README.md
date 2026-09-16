@@ -13,7 +13,7 @@ Apos um release `sdk/vX.Y.Z`, o workflow de publish cria o tag de subdiretorio `
 go get agendacobranca.dev/sdk/go@v0.2.0
 ```
 
-Sem o vanity DNS `agendacobranca.dev`, use `replace` no `go.mod` do consumidor (detalhes em [`docs/publishing.md`](../../../docs/publishing.md)):
+Sem o vanity DNS `agendacobranca.dev`, use `replace` no `go.mod` do consumidor (README na raiz do monorepo):
 
 ```go
 require agendacobranca.dev/sdk/go v0.2.0

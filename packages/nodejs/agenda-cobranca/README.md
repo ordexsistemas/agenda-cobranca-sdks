@@ -16,7 +16,7 @@ Pacote no **GitHub Packages** (scope da org `ordexsistemas`). `.npmrc` do projet
 npm i @ordexsistemas/agenda-cobranca
 ```
 
-Requer Node.js 18+ (usa `fetch` nativo). Detalhes e PAT `read:packages`: [`docs/publishing.md`](../../../docs/publishing.md).
+Requer Node.js 18+ (usa `fetch` nativo). PAT `read:packages`: README na raiz do monorepo (GitHub Packages).
 
 ## Configuração (só `api_key`)
 
