@@ -107,6 +107,14 @@ def cmd_release(args: argparse.Namespace) -> int:
         body = "\n".join(f"- {n}" for n in notes)
         title = f"{product} v{new_ver}"
         env = os.environ.copy()
+        # Actions exposes GITHUB_TOKEN; `gh` expects GH_TOKEN
+        if not env.get("GH_TOKEN") and env.get("GITHUB_TOKEN"):
+            env["GH_TOKEN"] = env["GITHUB_TOKEN"]
+        if not env.get("GH_TOKEN"):
+            raise RuntimeError(
+                "GH_TOKEN/GITHUB_TOKEN ausente. No workflow, defina "
+                "env: GH_TOKEN: ${{ github.token }}"
+            )
         cmd = [
             "gh", "release", "create", tag,
             "--title", title,
