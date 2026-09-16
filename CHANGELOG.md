@@ -8,8 +8,11 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ## [Unreleased]
 
 ### Added
-- SDK Node.js/TypeScript `@ordex/agenda-cobranca` (`packages/nodejs/agenda-cobranca`)
-- Pipeline de publicação para RubyGems, NuGet, npm e módulo Go (`docs/publishing.md`)
+- SDK Node.js/TypeScript `@ordexsistemas/agenda-cobranca` (`packages/nodejs/agenda-cobranca`)
+- Pipeline de publicação no GitHub Packages (npm, NuGet, RubyGems) e tag do módulo Go (`docs/publishing.md`)
+
+### Changed
+- Scope npm `@ordexsistemas/agenda-cobranca` (org GitHub) e registries apontando para GitHub Packages, não nuget.org / npmjs / RubyGems.org
 
 ## [0.2.0] - 2026-09-16
 

@@ -51,7 +51,9 @@ Nesse modo também são enviados `X-Client-Id`, `X-Timestamp`, `X-Nonce` e `X-Si
 
 ```ruby
 # Gemfile
-gem "agenda_cobranca"
+source "https://rubygems.pkg.github.com/ordexsistemas" do
+  gem "agenda_cobranca"
+end
 # ou, no monorepo:
 # gem "agenda_cobranca", path: "packages/ruby/agenda_cobranca"
 ```
@@ -73,6 +75,7 @@ go get agendacobranca.dev/sdk/go@v0.2.0
 ### C# (.NET 8)
 
 ```bash
+dotnet nuget add source https://nuget.pkg.github.com/ordexsistemas/index.json --name github --username USER --password PAT --store-password-in-clear-text
 dotnet add package AgendaCobranca.Sdk
 # ou referência de projeto: packages/csharp/AgendaCobranca.Sdk
 ```
@@ -80,7 +83,8 @@ dotnet add package AgendaCobranca.Sdk
 ### Node.js
 
 ```bash
-npm i @ordex/agenda-cobranca
+# .npmrc: @ordexsistemas:registry=https://npm.pkg.github.com  — ver docs/publishing.md
+npm i @ordexsistemas/agenda-cobranca
 ```
 
 ## 4. Exemplos mínimos (só `api_key`)
@@ -151,7 +155,7 @@ var cobranca = await client.CreateCobrancaAsync(new CreateCobrancaRequest(
 ### Node.js
 
 ```ts
-import { Client } from "@ordex/agenda-cobranca";
+import { Client } from "@ordexsistemas/agenda-cobranca";
 
 const client = new Client({
   apiKey: process.env.ORDEX_PAY_API_KEY!,

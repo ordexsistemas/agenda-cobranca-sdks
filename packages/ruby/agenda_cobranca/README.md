@@ -5,9 +5,13 @@ No uso basico basta `api_key` (+ `base_url` opcional). HMAC e opcional e fica OF
 
 ## Instalacao
 
+Publicado no **GitHub Packages**. Host e PAT: ver [`docs/publishing.md`](../../../docs/publishing.md).
+
 ```ruby
 # Gemfile
-gem "agenda_cobranca"
+source "https://rubygems.pkg.github.com/ordexsistemas" do
+  gem "agenda_cobranca"
+end
 ```
 
 No monorepo:

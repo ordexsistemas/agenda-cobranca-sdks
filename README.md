@@ -11,14 +11,14 @@ Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://gi
 
 | Linguagem | Pacote | Caminho |
 | --- | --- | --- |
-| Ruby | `agenda_cobranca` (RubyGems) | `packages/ruby/agenda_cobranca` |
+| Ruby | `agenda_cobranca` (GitHub Packages) | `packages/ruby/agenda_cobranca` |
 | Go | `agendacobranca.dev/sdk/go` | `packages/go/agenda-cobranca-go` |
-| C# | `AgendaCobranca.Sdk` (NuGet, .NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
-| Node.js | `@ordex/agenda-cobranca` (npm) | `packages/nodejs/agenda-cobranca` |
+| C# | `AgendaCobranca.Sdk` (GitHub Packages, .NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
+| Node.js | `@ordexsistemas/agenda-cobranca` (GitHub Packages) | `packages/nodejs/agenda-cobranca` |
 
 Documentação de arquitetura: [`docs/architecture.md`](docs/architecture.md).  
 Vetores HMAC: [`docs/hmac-test-vectors.md`](docs/hmac-test-vectors.md).  
-Publicação (NuGet, RubyGems, npm, Go): [`docs/publishing.md`](docs/publishing.md).
+Publicação (GitHub Packages + Go): [`docs/publishing.md`](docs/publishing.md).
 
 ## Autenticação (padrão)
 
@@ -146,10 +146,10 @@ cd packages/csharp/AgendaCobranca.Sdk
 dotnet test
 ```
 
-## Node.js — npm `@ordex/agenda-cobranca`
+## Node.js — npm `@ordexsistemas/agenda-cobranca`
 
 ```ts
-import { Client } from "@ordex/agenda-cobranca";
+import { Client } from "@ordexsistemas/agenda-cobranca";
 
 const client = new Client({
   apiKey: process.env.ORDEX_PAY_API_KEY!,
@@ -190,4 +190,4 @@ Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`) estão documentad
 - Actions: `.github/workflows/versionamento.yml` (`workflow_dispatch`, bump auto|patch|minor|major)
 
 Tag anotada: `sdk/vX.Y.Z`. Detalhes: [`tools/versionamento/README.md`](tools/versionamento/README.md).  
-Após a tag, [`.github/workflows/publish.yml`](.github/workflows/publish.yml) publica gem / nupkg / npm e cria o tag Go de subdiretório. Secrets: [`docs/publishing.md`](docs/publishing.md).
+Após a tag, [`.github/workflows/publish.yml`](.github/workflows/publish.yml) publica gem / nupkg / npm no **GitHub Packages** e cria o tag Go de subdiretório. Detalhes: [`docs/publishing.md`](docs/publishing.md).

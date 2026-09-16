@@ -1,56 +1,125 @@
-# Publicação dos SDKs
+# Publicação dos SDKs — GitHub Packages
 
-Os pacotes compartilham a versão de `VERSION.yml` (hoje **0.2.0**). O CLI `./bin/versionamento release` atualiza `VERSION.yml`, `CHANGELOG.md` e os metadados Ruby/C#/Node, cria a tag anotada `sdk/vX.Y.Z` e, no Actions, dispara a publicação.
+Os pacotes compartilham a versão de `VERSION.yml` (hoje **0.2.0**). O CLI `./bin/versionamento release` atualiza `VERSION.yml`, `CHANGELOG.md` e os metadados Ruby/C#/Node, cria a tag anotada `sdk/vX.Y.Z` e, no Actions, publica no **GitHub Packages** da org `ordexsistemas`.
+
+Não usamos nuget.org, npmjs.com nem RubyGems.org.
 
 Workflows:
 
 - [`.github/workflows/versionamento.yml`](../.github/workflows/versionamento.yml) — bump SemVer + tag
-- [`.github/workflows/publish.yml`](../.github/workflows/publish.yml) — publica nos registries (também em `workflow_dispatch` e em push da tag `sdk/v*`)
+- [`.github/workflows/publish.yml`](../.github/workflows/publish.yml) — publica no GitHub Packages (também em `workflow_dispatch` e em push da tag `sdk/v*`)
 - [`.github/workflows/test.yml`](../.github/workflows/test.yml) — testes em PR/push
 
-## Secrets do GitHub Actions
+## Permissões do Actions
 
-Configure em **Settings → Secrets and variables → Actions** (não commite tokens):
+O publish usa `GITHUB_TOKEN` do próprio repositório. Não é necessário `NPM_TOKEN`, `NUGET_API_KEY` nem `RUBYGEMS_API_KEY`.
 
-| Secret | Obrigatório para | Uso |
-| --- | --- | --- |
-| `RUBYGEMS_API_KEY` | RubyGems | `gem push` da gem `agenda_cobranca`. Alternativa: `GEM_HOST_API_KEY` (mesmo valor; a API do RubyGems espera este nome no ambiente). |
-| `NUGET_API_KEY` | NuGet.org | `dotnet nuget push` de `AgendaCobranca.Sdk` |
-| `NPM_TOKEN` | npm | `npm publish` de `@ordex/agenda-cobranca` (automação com permissão **Publish**; `--access public`) |
-
-O job Go **não** precisa de secret de registry. Jobs cujo secret estiver vazio são **pulados** com warning (o restante do workflow segue).
-
-## RubyGems — `agenda_cobranca`
-
-```bash
-cd packages/ruby/agenda_cobranca
-gem build agenda_cobranca.gemspec
-GEM_HOST_API_KEY=... gem push agenda_cobranca-*.gem
+```yaml
+permissions:
+  contents: write   # tag Go de subdiretório + checkout
+  packages: write   # npm / NuGet / RubyGems no GitHub Packages
 ```
 
-## NuGet — `AgendaCobranca.Sdk`
+Se um job de publish falhar, o workflow falha (não há skip silencioso por secret ausente).
 
-```bash
-cd packages/csharp/AgendaCobranca.Sdk
-dotnet pack src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj -c Release -p:PackageVersion=0.2.0
-dotnet nuget push nupkgs/*.nupkg -k "$NUGET_API_KEY" -s https://api.nuget.org/v3/index.json --skip-duplicate
+## Visibilidade
+
+Os pacotes no GitHub Packages **herdam a visibilidade do repositório**.  
+Se o repo for privado, o consumidor precisa de um PAT com `read:packages` (e `repo` se o pacote estiver ligado a um repositório privado). Em repo público, a leitura costuma ser possível sem PAT, mas o GitHub ainda pode exigir autenticação em alguns clientes.
+
+## npm — `@ordexsistemas/agenda-cobranca`
+
+Registry: `https://npm.pkg.github.com`  
+O scope **precisa** ser `@ordexsistemas` (mesmo nome da org).
+
+### Instalar (consumidor)
+
+`.npmrc` no projeto:
+
+```ini
+@ordexsistemas:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=SEU_PAT
 ```
 
-## npm — `@ordex/agenda-cobranca`
+```bash
+npm i @ordexsistemas/agenda-cobranca
+```
 
-Pacote **scoped** (`@ordex/...`). Requer Node 18+ e publish com `--access public`.
+O PAT precisa de `read:packages` quando o pacote/repositório não for publicamente legível.
+
+### Publicar (já feito no Actions)
 
 ```bash
 cd packages/nodejs/agenda-cobranca
 npm ci
 npm test
 npm run build
-NODE_AUTH_TOKEN=... npm publish --access public
+NODE_AUTH_TOKEN="$GITHUB_TOKEN" npm publish
+```
+
+`package.json` declara `publishConfig.registry: https://npm.pkg.github.com`.
+
+## NuGet — `AgendaCobranca.Sdk`
+
+Source: `https://nuget.pkg.github.com/ordexsistemas/index.json`
+
+### Instalar (consumidor)
+
+```bash
+dotnet nuget add source https://nuget.pkg.github.com/ordexsistemas/index.json \
+  --name github \
+  --username SEU_USUARIO \
+  --password SEU_PAT \
+  --store-password-in-clear-text
+
+dotnet add package AgendaCobranca.Sdk
+```
+
+O PAT precisa de `read:packages` (e `repo` se o repositório for privado).
+
+### Publicar (já feito no Actions)
+
+```bash
+dotnet pack ... -p:PackageVersion=0.2.0
+dotnet nuget push nupkgs/*.nupkg \
+  --api-key "$GITHUB_TOKEN" \
+  --source https://nuget.pkg.github.com/ordexsistemas/index.json
+```
+
+## RubyGems — `agenda_cobranca`
+
+Host: `https://rubygems.pkg.github.com/ordexsistemas`
+
+### Instalar (consumidor)
+
+`~/.gem/credentials` (chmod 0600):
+
+```yaml
+:github: Bearer SEU_PAT
+```
+
+Gemfile:
+
+```ruby
+source "https://rubygems.pkg.github.com/ordexsistemas" do
+  gem "agenda_cobranca"
+end
+```
+
+O PAT precisa de `read:packages`.
+
+### Publicar (já feito no Actions)
+
+```bash
+printf '%s\n' ":github: Bearer ${GITHUB_TOKEN}" > ~/.gem/credentials
+chmod 0600 ~/.gem/credentials
+gem build agenda_cobranca.gemspec
+gem push --key github --host https://rubygems.pkg.github.com/ordexsistemas agenda_cobranca-*.gem
 ```
 
 ## Go — `agendacobranca.dev/sdk/go`
 
-Go não usa um registry separado: o consumidor busca o módulo via VCS + [proxy.golang.org](https://proxy.golang.org).
+Go **não** é publicado como card do GitHub Packages. O consumidor busca o módulo via VCS + [proxy.golang.org](https://proxy.golang.org).
 
 - Caminho do módulo (import): `agendacobranca.dev/sdk/go`
 - Diretório no monorepo: `packages/go/agenda-cobranca-go`
@@ -65,17 +134,13 @@ O host deve responder `?go-get=1` com:
 <meta name="go-import" content="agendacobranca.dev/sdk git https://github.com/ordexsistemas/agenda-cobranca-sdks">
 ```
 
-Neste layout o path `go` após o prefixo `agendacobranca.dev/sdk` não coincide com `packages/go/agenda-cobranca-go`. Prefira um prefixo que aponte o repositório inteiro e um `replace`, **ou** sirva o meta com o repositório GitHub e use o tag de subdiretório abaixo.
-
 Instalação pretendida depois do vanity:
 
 ```bash
 go get agendacobranca.dev/sdk/go@v0.2.0
 ```
 
-### Sem vanity (GitHub, funciona após o tag de subdiretório)
-
-O `go.mod` declara `module agendacobranca.dev/sdk/go`. Para baixar pelo GitHub sem o domínio vanity, o consumidor usa `replace` apontando o caminho real do repositório (o `go.mod` da substituição continua com o path vanity):
+### Sem vanity (GitHub)
 
 ```go
 require agendacobranca.dev/sdk/go v0.2.0
@@ -87,13 +152,12 @@ replace agendacobranca.dev/sdk/go => github.com/ordexsistemas/agenda-cobranca-sd
 go get github.com/ordexsistemas/agenda-cobranca-sdks/packages/go/agenda-cobranca-go@v0.2.0
 ```
 
-O segundo comando só resolve se o proxy encontrar o tag `packages/go/agenda-cobranca-go/v0.2.0`. Esse tag é criado automaticamente no publish.
+O segundo comando só resolve se o proxy encontrar o tag `packages/go/agenda-cobranca-go/v0.2.0`.
 
-O job Go ainda dispara um fetch em `https://proxy.golang.org/agendacobranca.dev/sdk/go/@v/vX.Y.Z.info` (best-effort; falha sem vanity não quebra o workflow).
+O job Go ainda dispara um fetch em `https://proxy.golang.org/agendacobranca.dev/sdk/go/@v/vX.Y.Z.info` (best-effort; falha sem vanity DNS não quebra o workflow).
 
 ## Publicar uma versão
 
-1. Configure os secrets acima.
-2. Rode **Versionamento SDK** (`workflow_dispatch`) ou `./bin/versionamento release --kind patch --push`.
-3. Confira a run de **Publish SDKs** e as páginas npm / NuGet / RubyGems.
-4. Consumo Go: `go get …@vX.Y.Z` conforme a seção anterior.
+1. Rode **Versionamento SDK** (`workflow_dispatch`) ou `./bin/versionamento release --kind patch --push`.
+2. Confira a run de **Publish SDKs** e os pacotes em [github.com/orgs/ordexsistemas/packages](https://github.com/orgs/ordexsistemas/packages).
+3. Consumo: npm / NuGet / gem conforme as seções acima; Go via `go get …@vX.Y.Z`.

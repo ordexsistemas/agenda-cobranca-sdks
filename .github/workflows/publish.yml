@@ -18,6 +18,7 @@ on:
 
 permissions:
   contents: write
+  packages: write
 
 jobs:
   resolve:
@@ -49,10 +50,10 @@ jobs:
             exit 1
           fi
           echo "version=$VER" >> "$GITHUB_OUTPUT"
-          echo "Publicando SDKs v$VER"
+          echo "Publicando SDKs v$VER no GitHub Packages"
 
   npm:
-    name: npm (@ordex/agenda-cobranca)
+    name: GitHub Packages npm (@ordexsistemas/agenda-cobranca)
     needs: resolve
     runs-on: ubuntu-latest
     steps:
@@ -65,31 +66,32 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
-          registry-url: https://registry.npmjs.org
+          registry-url: https://npm.pkg.github.com
+          scope: "@ordexsistemas"
 
       - name: Publish
         working-directory: packages/nodejs/agenda-cobranca
         env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
           if [ -z "${NODE_AUTH_TOKEN:-}" ]; then
-            echo "::warning::NPM_TOKEN ausente; pulando npm publish"
-            exit 0
+            echo "::error::GITHUB_TOKEN ausente; impossível publicar no GitHub Packages"
+            exit 1
           fi
           npm ci
           npm test
           npm run build
-          CURRENT=$(npm view @ordex/agenda-cobranca version 2>/dev/null || true)
+          CURRENT=$(npm view @ordexsistemas/agenda-cobranca version --registry=https://npm.pkg.github.com 2>/dev/null || true)
           if [ "$CURRENT" = "$VERSION" ]; then
-            echo "@ordex/agenda-cobranca@$VERSION já publicado"
+            echo "@ordexsistemas/agenda-cobranca@$VERSION já publicado no GitHub Packages"
             exit 0
           fi
-          npm publish --access public
+          npm publish
 
   rubygems:
-    name: RubyGems (agenda_cobranca)
+    name: GitHub Packages RubyGems (agenda_cobranca)
     needs: resolve
     runs-on: ubuntu-latest
     steps:
@@ -108,19 +110,23 @@ jobs:
       - name: Publish
         working-directory: packages/ruby/agenda_cobranca
         env:
-          GEM_HOST_API_KEY: ${{ secrets.RUBYGEMS_API_KEY || secrets.GEM_HOST_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          if [ -z "${GEM_HOST_API_KEY:-}" ]; then
-            echo "::warning::RUBYGEMS_API_KEY/GEM_HOST_API_KEY ausente; pulando gem push"
-            exit 0
+          if [ -z "${GITHUB_TOKEN:-}" ]; then
+            echo "::error::GITHUB_TOKEN ausente; impossível publicar no GitHub Packages"
+            exit 1
           fi
+          mkdir -p "$HOME/.gem"
+          printf '%s\n' ":github: Bearer ${GITHUB_TOKEN}" > "$HOME/.gem/credentials"
+          chmod 0600 "$HOME/.gem/credentials"
           gem build agenda_cobranca.gemspec
-          gem push "agenda_cobranca-${VERSION}.gem"
+          gem push --key github --host https://rubygems.pkg.github.com/ordexsistemas \
+            "agenda_cobranca-${VERSION}.gem"
 
   nuget:
-    name: NuGet (AgendaCobranca.Sdk)
+    name: GitHub Packages NuGet (AgendaCobranca.Sdk)
     needs: resolve
     runs-on: ubuntu-latest
     steps:
@@ -137,21 +143,27 @@ jobs:
       - name: Publish
         working-directory: packages/csharp/AgendaCobranca.Sdk
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           VERSION: ${{ needs.resolve.outputs.version }}
         run: |
           set -euo pipefail
-          if [ -z "${NUGET_API_KEY:-}" ]; then
-            echo "::warning::NUGET_API_KEY ausente; pulando nuget push"
-            exit 0
+          if [ -z "${GITHUB_TOKEN:-}" ]; then
+            echo "::error::GITHUB_TOKEN ausente; impossível publicar no GitHub Packages"
+            exit 1
           fi
+          SOURCE="https://nuget.pkg.github.com/ordexsistemas/index.json"
+          dotnet nuget add source "$SOURCE" \
+            --name github \
+            --username "${{ github.actor }}" \
+            --password "$GITHUB_TOKEN" \
+            --store-password-in-clear-text
           dotnet pack src/AgendaCobranca.Sdk/AgendaCobranca.Sdk.csproj \
             -c Release \
             --output nupkgs \
             -p:PackageVersion="$VERSION"
           dotnet nuget push nupkgs/*.nupkg \
-            --api-key "$NUGET_API_KEY" \
-            --source https://api.nuget.org/v3/index.json \
+            --api-key "$GITHUB_TOKEN" \
+            --source github \
             --skip-duplicate
 
   go:

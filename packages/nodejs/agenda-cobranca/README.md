@@ -1,20 +1,27 @@
-# @ordex/agenda-cobranca
+# @ordexsistemas/agenda-cobranca
 
 Pacote npm (thin client TypeScript) da API externa Ordex Pay / Agenda Financeira.
 No uso básico basta `apiKey` (+ `baseUrl` opcional). HMAC é opcional (`signingEnabled`, **OFF** por padrão).
 
 ## Instalação
 
-```bash
-npm i @ordex/agenda-cobranca
+Pacote no **GitHub Packages** (scope da org `ordexsistemas`). `.npmrc` do projeto:
+
+```ini
+@ordexsistemas:registry=https://npm.pkg.github.com
+//npm.pkg.github.com/:_authToken=${GITHUB_TOKEN}
 ```
 
-Requer Node.js 18+ (usa `fetch` nativo).
+```bash
+npm i @ordexsistemas/agenda-cobranca
+```
+
+Requer Node.js 18+ (usa `fetch` nativo). Detalhes e PAT `read:packages`: [`docs/publishing.md`](../../../docs/publishing.md).
 
 ## Configuração (só `api_key`)
 
 ```ts
-import { Client } from "@ordex/agenda-cobranca";
+import { Client } from "@ordexsistemas/agenda-cobranca";
 
 const client = new Client({
   apiKey: process.env.ORDEX_PAY_API_KEY!,
@@ -61,7 +68,7 @@ Plano pausado / chave inválida → HTTP 403 mapeado para `AuthenticationError`.
 ## Webhooks (verificação local)
 
 ```ts
-import { verifyWebhook, verifyWebhookOrThrow } from "@ordex/agenda-cobranca";
+import { verifyWebhook, verifyWebhookOrThrow } from "@ordexsistemas/agenda-cobranca";
 
 const ok = verifyWebhook(rawBody, headers, process.env.ORDEX_PAY_CLIENT_SECRET!);
 verifyWebhookOrThrow(rawBody, headers, process.env.ORDEX_PAY_CLIENT_SECRET!);

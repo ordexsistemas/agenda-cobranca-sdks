@@ -2,7 +2,7 @@
 
 ## Camada atual (thin clients)
 
-Ruby (`agenda_cobranca`), Go (`agendacobranca.dev/sdk/go`), C# (`AgendaCobranca.Sdk`) e Node.js (`@ordex/agenda-cobranca`) falam HTTPS com a API externa Ordex Pay.
+Ruby (`agenda_cobranca`), Go (`agendacobranca.dev/sdk/go`), C# (`AgendaCobranca.Sdk`) e Node.js (`@ordexsistemas/agenda-cobranca`) falam HTTPS com a API externa Ordex Pay.
 
 ```
 App do cliente
