@@ -1,0 +1,69 @@
+name: Testes
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  node:
+    name: Node.js
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: packages/nodejs/agenda-cobranca/package-lock.json
+      - run: npm ci
+        working-directory: packages/nodejs/agenda-cobranca
+      - run: npm test
+        working-directory: packages/nodejs/agenda-cobranca
+      - run: npm run build
+        working-directory: packages/nodejs/agenda-cobranca
+
+  go:
+    name: Go
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: "1.22"
+      - run: go test ./...
+        working-directory: packages/go/agenda-cobranca-go
+
+  ruby:
+    name: Ruby
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.3"
+          bundler-cache: true
+          working-directory: packages/ruby/agenda_cobranca
+      - run: bundle exec rspec
+        working-directory: packages/ruby/agenda_cobranca
+
+  csharp:
+    name: C#
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "8.0.x"
+      - run: dotnet test
+        working-directory: packages/csharp/AgendaCobranca.Sdk
+
+  versionamento:
+    name: Versionamento
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python3 -m unittest tools.versionamento.test_files

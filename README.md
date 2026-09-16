@@ -1,6 +1,6 @@
 # Agenda Cobrança — SDKs (Ordex Pay)
 
-Monorepo com thin clients da API externa Ordex Pay / Agenda Financeira (Ruby, Go e C#).
+Monorepo com thin clients da API externa Ordex Pay / Agenda Financeira (Ruby, Go, C# e Node.js).
 
 **Uso básico:** só `api_key` (+ `base_url` opcional). HMAC é opcional e fica **OFF** por padrão.
 
@@ -11,12 +11,14 @@ Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://gi
 
 | Linguagem | Pacote | Caminho |
 | --- | --- | --- |
-| Ruby | `agenda_cobranca` | `packages/ruby/agenda_cobranca` |
-| Go | `agenda-cobranca-go` | `packages/go/agenda-cobranca-go` |
-| C# | `AgendaCobranca.Sdk` (.NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
+| Ruby | `agenda_cobranca` (RubyGems) | `packages/ruby/agenda_cobranca` |
+| Go | `agendacobranca.dev/sdk/go` | `packages/go/agenda-cobranca-go` |
+| C# | `AgendaCobranca.Sdk` (NuGet, .NET 8) | `packages/csharp/AgendaCobranca.Sdk` |
+| Node.js | `@ordex/agenda-cobranca` (npm) | `packages/nodejs/agenda-cobranca` |
 
 Documentação de arquitetura: [`docs/architecture.md`](docs/architecture.md).  
-Vetores HMAC: [`docs/hmac-test-vectors.md`](docs/hmac-test-vectors.md).
+Vetores HMAC: [`docs/hmac-test-vectors.md`](docs/hmac-test-vectors.md).  
+Publicação (NuGet, RubyGems, npm, Go): [`docs/publishing.md`](docs/publishing.md).
 
 ## Autenticação (padrão)
 
@@ -144,7 +146,32 @@ cd packages/csharp/AgendaCobranca.Sdk
 dotnet test
 ```
 
-## Testar os três de uma vez
+## Node.js — npm `@ordex/agenda-cobranca`
+
+```ts
+import { Client } from "@ordex/agenda-cobranca";
+
+const client = new Client({
+  apiKey: process.env.ORDEX_PAY_API_KEY!,
+  // baseUrl: process.env.ORDEX_PAY_BASE_URL, // opcional
+});
+
+const cobranca = await client.cobrancas.create({
+  externalReference: "pedido-1001",
+  valorCentavos: 15_000,
+  vencimento: "2026-10-01",
+  pagador: { documento: "12345678901", nome: "Maria Silva", email: "maria@example.com" },
+  idempotencyKey: "pedido-1001-cobranca",
+});
+```
+
+```bash
+cd packages/nodejs/agenda-cobranca
+npm install
+npm test
+```
+
+## Testar todos de uma vez
 
 ```bash
 make test
@@ -162,4 +189,5 @@ Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`) estão documentad
 - CLI: `./bin/versionamento` (Python stdlib em `tools/versionamento/`)
 - Actions: `.github/workflows/versionamento.yml` (`workflow_dispatch`, bump auto|patch|minor|major)
 
-Tag anotada: `sdk/vX.Y.Z`. Detalhes: [`tools/versionamento/README.md`](tools/versionamento/README.md).
+Tag anotada: `sdk/vX.Y.Z`. Detalhes: [`tools/versionamento/README.md`](tools/versionamento/README.md).  
+Após a tag, [`.github/workflows/publish.yml`](.github/workflows/publish.yml) publica gem / nupkg / npm e cria o tag Go de subdiretório. Secrets: [`docs/publishing.md`](docs/publishing.md).

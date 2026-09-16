@@ -1,0 +1,52 @@
+{
+  "name": "@ordex/agenda-cobranca",
+  "version": "0.2.0",
+  "description": "Thin client Node.js/TypeScript para a API externa Ordex Pay / Agenda Financeira",
+  "license": "MIT",
+  "author": "Ordex Sistemas",
+  "homepage": "https://github.com/ordexsistemas/agenda-cobranca-sdks",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ordexsistemas/agenda-cobranca-sdks.git",
+    "directory": "packages/nodejs/agenda-cobranca"
+  },
+  "bugs": {
+    "url": "https://github.com/ordexsistemas/agenda-cobranca-sdks/issues"
+  },
+  "keywords": [
+    "agenda",
+    "cobranca",
+    "ordex",
+    "ordex-pay",
+    "sdk",
+    "hmac"
+  ],
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "npm run clean && npm run build"
+  },
+  "devDependencies": {
+    "@types/node": "^22.13.10",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.8"
+  }
+}
