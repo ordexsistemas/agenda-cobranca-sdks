@@ -49,6 +49,8 @@ jobs:
       - name: Release (bump + commit + annotated tag)
         env:
           CI: "true"
+          GH_TOKEN: ${{ github.token }}
+          GITHUB_TOKEN: ${{ github.token }}
         run: |
           EXTRA=()
           if [ "${{ inputs.create_github_release }}" = "true" ]; then
