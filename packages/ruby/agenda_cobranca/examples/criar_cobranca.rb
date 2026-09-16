@@ -3,10 +3,11 @@
 require "agenda_cobranca"
 
 AgendaCobranca.configure do |config|
-  config.client_id = ENV.fetch("AGENDA_COBRANCA_CLIENT_ID", "seu_client_id")
-  config.api_key = ENV.fetch("AGENDA_COBRANCA_API_KEY", "sua_api_key")
-  config.client_secret = ENV.fetch("AGENDA_COBRANCA_CLIENT_SECRET", "seu_client_secret")
-  config.base_url = ENV.fetch("AGENDA_COBRANCA_BASE_URL", "https://api.agendacobranca.example/v1")
+  config.api_key = ENV.fetch("ORDEX_PAY_API_KEY", "sua_api_key")
+  config.base_url = ENV.fetch(
+    "ORDEX_PAY_BASE_URL",
+    "https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo"
+  )
 end
 
 client = AgendaCobranca::Client.new

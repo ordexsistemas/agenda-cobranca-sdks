@@ -23,7 +23,10 @@ func NewClient(opts Options) (*Client, error) {
 		return nil, err
 	}
 
-	signer := NewSignerWith(opts.ClientSecret, opts.Clock, opts.NonceGenerator)
+	var signer *Signer
+	if opts.SigningEnabled {
+		signer = NewSignerWith(opts.ClientSecret, opts.Clock, opts.NonceGenerator)
+	}
 
 	client := &Client{
 		baseURL:    opts.baseURL(),
@@ -56,10 +59,11 @@ func montarHTTPClient(opts Options, signer *Signer) *http.Client {
 	return &http.Client{
 		Timeout: timeout,
 		Transport: &signingRoundTripper{
-			next:     next,
-			signer:   signer,
-			clientID: opts.ClientID,
-			apiKey:   opts.APIKey,
+			next:           next,
+			signer:         signer,
+			clientID:       opts.ClientID,
+			apiKey:         opts.APIKey,
+			signingEnabled: opts.SigningEnabled,
 		},
 	}
 }

@@ -1,0 +1,62 @@
+name: Versionamento SDK
+
+on:
+  workflow_dispatch:
+    inputs:
+      bump:
+        description: "Tipo de bump SemVer"
+        required: true
+        default: auto
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+      create_github_release:
+        description: "Criar GitHub Release"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Bump VERSION + CHANGELOG + tag sdk/v*
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Show current version
+        run: ./bin/versionamento show
+
+      - name: Release (bump + commit + annotated tag)
+        env:
+          CI: "true"
+        run: |
+          EXTRA=()
+          if [ "${{ inputs.create_github_release }}" = "true" ]; then
+            EXTRA+=(--github-release)
+          fi
+          ./bin/versionamento release --kind "${{ inputs.bump }}" --configure-git --push "${EXTRA[@]}"
+
+      - name: Summary
+        run: |
+          ./bin/versionamento show
+          echo "Tag criada a partir de VERSION.yml (component sdk)."

@@ -1,8 +1,11 @@
-# Agenda Cobrança — SDKs (entrega 1)
+# Agenda Cobrança — SDKs (Ordex Pay)
 
-Monorepo privado com os thin clients da Agenda Cobrança API e o núcleo de assinatura HMAC compartilhado (a mesma *canonical string* em Ruby, Go e C#).
+Monorepo com thin clients da API externa Ordex Pay / Agenda Financeira (Ruby, Go e C#).
 
-Nesta entrega os SDKs **assinam e falam HTTP direto** com a API (ou com a URL de um gateway, se você configurar `base_url`). O **Security Gateway** (pacote interno vendável: licenças, tokens efêmeros, perímetro HMAC) é a **etapa 2**.
+**Uso básico:** só `api_key` (+ `base_url` opcional). HMAC é opcional e fica **OFF** por padrão.
+
+Guia de integração para o portal: [`docs/integracao-ordex-pay.md`](docs/integracao-ordex-pay.md).  
+Repositório: [https://github.com/ordexsistemas/agenda-cobranca-sdks](https://github.com/ordexsistemas/agenda-cobranca-sdks)
 
 ## Pacotes
 
@@ -15,15 +18,34 @@ Nesta entrega os SDKs **assinam e falam HTTP direto** com a API (ou com a URL de
 Documentação de arquitetura: [`docs/architecture.md`](docs/architecture.md).  
 Vetores HMAC: [`docs/hmac-test-vectors.md`](docs/hmac-test-vectors.md).
 
-## Segurança
+## Autenticação (padrão)
 
 Headers em toda request:
+
+- `chave_api` — valor da `api_key`
+- `X-Api-Key` — mesmo valor
+
+Base URL padrão (HML):
+
+```
+https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo
+```
+
+Plano pausado / chave inválida → **HTTP 403** (erro de autenticação no SDK).
+
+Não há secrets hardcoded. Exemplos usam:
+
+- `ORDEX_PAY_API_KEY`
+- `ORDEX_PAY_BASE_URL` (opcional)
+
+### HMAC opcional
+
+Com `signing_enabled` / `SigningEnabled = true` (+ `client_secret`):
 
 - `X-Client-Id`
 - `X-Timestamp` (Unix em segundos)
 - `X-Nonce` (UUIDv4)
 - `X-Signature`
-- `X-Api-Key`
 
 ```
 canonical_string = METHOD + "\n" + PATH + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + HASH_SHA256(REQUEST_BODY)
@@ -31,31 +53,17 @@ signature        = HMAC_SHA256(canonical_string, CLIENT_SECRET)
 ```
 
 `client_secret` **nunca** vai em header em texto plano.  
+Sem HMAC, os headers `X-Client-Id` / `X-Timestamp` / `X-Nonce` / `X-Signature` **não** são enviados.
+
 `Create` envia `Idempotency-Key`.  
 `Webhooks.Verify` é verificação local (sem HTTP).
-
-Base URL padrão (configurável): `https://api.agendacobranca.example/v1`.
-
-Não há secrets hardcoded. Exemplos usam placeholders / variáveis de ambiente:
-
-- `AGENDA_COBRANCA_CLIENT_ID`
-- `AGENDA_COBRANCA_API_KEY`
-- `AGENDA_COBRANCA_CLIENT_SECRET`
-- `AGENDA_COBRANCA_BASE_URL`
 
 ## Ruby — gem `agenda_cobranca`
 
 ```ruby
-# Gemfile (path local neste monorepo)
-gem "agenda_cobranca", path: "packages/ruby/agenda_cobranca"
-```
-
-```ruby
 AgendaCobranca.configure do |config|
-  config.client_id = ENV.fetch("AGENDA_COBRANCA_CLIENT_ID")
-  config.api_key = ENV.fetch("AGENDA_COBRANCA_API_KEY")
-  config.client_secret = ENV.fetch("AGENDA_COBRANCA_CLIENT_SECRET")
-  config.base_url = ENV.fetch("AGENDA_COBRANCA_BASE_URL", "https://api.agendacobranca.example/v1")
+  config.api_key = ENV.fetch("ORDEX_PAY_API_KEY")
+  config.base_url = ENV.fetch("ORDEX_PAY_BASE_URL", "https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo") # optional
 end
 
 client = AgendaCobranca::Client.new
@@ -71,9 +79,6 @@ cobranca = client.cobrancas.create(
 client.cobrancas.find(cobranca.id)
 client.cobrancas.list(status: "pendente")
 client.cobrancas.cancel(cobranca.id)
-client.licenses.verify
-
-AgendaCobranca::Webhooks.verify(payload, headers, client_secret: ENV.fetch("AGENDA_COBRANCA_CLIENT_SECRET"))
 ```
 
 Initializer Rails: `packages/ruby/agenda_cobranca/examples/rails/agenda_cobranca.rb`.
@@ -90,10 +95,8 @@ bundle exec rspec
 import agendacobranca "agendacobranca.dev/sdk/go"
 
 client, err := agendacobranca.NewClient(agendacobranca.Options{
-    ClientID:     os.Getenv("AGENDA_COBRANCA_CLIENT_ID"),
-    APIKey:       os.Getenv("AGENDA_COBRANCA_API_KEY"),
-    ClientSecret: os.Getenv("AGENDA_COBRANCA_CLIENT_SECRET"),
-    BaseURL:      "https://api.agendacobranca.example/v1",
+    APIKey:  os.Getenv("ORDEX_PAY_API_KEY"),
+    // BaseURL: opcional
 })
 if err != nil {
     log.Fatal(err)
@@ -122,10 +125,8 @@ go test ./...
 ```csharp
 services.AddAgendaCobranca(options =>
 {
-    options.ClientId = Environment.GetEnvironmentVariable("AGENDA_COBRANCA_CLIENT_ID")!;
-    options.ApiKey = Environment.GetEnvironmentVariable("AGENDA_COBRANCA_API_KEY")!;
-    options.ClientSecret = Environment.GetEnvironmentVariable("AGENDA_COBRANCA_CLIENT_SECRET")!;
-    options.BaseUrl = "https://api.agendacobranca.example/v1";
+    options.ApiKey = Environment.GetEnvironmentVariable("ORDEX_PAY_API_KEY")!;
+    // options.BaseUrl = "..."; // opcional
 });
 ```
 
@@ -151,4 +152,14 @@ make test
 
 ## Endpoints
 
-Somente o que a spec define: CRUD de cobranças, `POST /licenses/verify` e `Webhooks.Verify` local. Nenhum outro recurso.
+Cobranças (CRUD + cancel), `POST /licenses/verify` e `Webhooks.Verify` local.  
+Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`) estão documentados em [`docs/integracao-ordex-pay.md`](docs/integracao-ordex-pay.md).
+
+## Versionamento
+
+- `VERSION.yml` — component `sdk`, product "Ordex Pay SDKs"
+- `CHANGELOG.md` — Keep a Changelog (PT)
+- CLI: `./bin/versionamento` (Python stdlib em `tools/versionamento/`)
+- Actions: `.github/workflows/versionamento.yml` (`workflow_dispatch`, bump auto|patch|minor|major)
+
+Tag anotada: `sdk/vX.Y.Z`. Detalhes: [`tools/versionamento/README.md`](tools/versionamento/README.md).

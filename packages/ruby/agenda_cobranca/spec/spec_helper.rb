@@ -25,10 +25,8 @@ RSpec.configure do |config|
   config.before do
     AgendaCobranca.reset_configuration!
     AgendaCobranca.configure do |cfg|
-      cfg.client_id = "client_exemplo"
       cfg.api_key = "api_key_exemplo"
-      cfg.client_secret = "test_client_secret"
-      cfg.base_url = "https://api.agendacobranca.example/v1"
+      cfg.base_url = "https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo"
     end
   end
 end

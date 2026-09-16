@@ -1,33 +1,29 @@
-# Arquitetura — Ecossistema SDK Agenda Cobrança API
+# Arquitetura — Ecossistema SDK Agenda Cobrança / Ordex Pay
 
-## Duas camadas
+## Camada atual (thin clients)
 
-1. **Security & Licensing Gateway** (etapa 2, pacote interno vendável)  
-   Faturamento, licenças, tokens efêmeros e validação HMAC no perímetro. Ainda não faz parte desta entrega.
-
-2. **SDK Clients (thin clients)** — entrega 1  
-   Ruby (`agenda_cobranca`), Go (`agenda-cobranca-go`) e C# (`AgendaCobranca.Sdk`).  
-   Cada SDK assina a request e fala HTTPS direto com a API, ou com a URL de um gateway se `base_url` apontar para ele.
+Ruby (`agenda_cobranca`), Go (`agenda-cobranca-go`) e C# (`AgendaCobranca.Sdk`) falam HTTPS com a API externa Ordex Pay.
 
 ```
 App do cliente
     → SDK (Ruby | Go | C#)
-        → HTTPS + HMAC-SHA256
-            → API (https://api.agendacobranca.example/v1)
-            → ou Security Gateway (quando configurado)
+        → HTTPS + headers chave_api / X-Api-Key
+            → API (https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo)
 ```
-
-Nesta entrega os SDKs **não** embutem o gateway. Eles só conhecem `base_url`.
 
 ## Credenciais
 
-| Campo | Onde vive | Transporte |
+| Campo | Obrigatório? | Transporte |
 | --- | --- | --- |
-| `client_id` | configuração | header `X-Client-Id` |
-| `api_key` | configuração | header `X-Api-Key` |
-| `client_secret` | configuração, só memória | **nunca** em header/plain; só como chave HMAC |
+| `api_key` | **sim** (uso básico) | headers `chave_api` e `X-Api-Key` (mesmo valor) |
+| `base_url` | não (tem default HML) | URL base do cliente HTTP |
+| `client_id` / `client_secret` | só se `signing_enabled` | HMAC; `client_secret` **nunca** em header plain |
 
-## Canonical string (idêntica nas três linguagens)
+HMAC (`signing_enabled` / `SigningEnabled`) fica **OFF** por padrão. Sem HMAC, não se enviam `X-Client-Id`, `X-Timestamp`, `X-Nonce` nem `X-Signature`.
+
+## Canonical string HMAC (quando habilitado)
+
+Idêntica nas três linguagens:
 
 ```
 canonical_string = METHOD + "\n" + PATH + "\n" + TIMESTAMP + "\n" + NONCE + "\n" + HASH_SHA256(REQUEST_BODY)
@@ -37,44 +33,35 @@ signature        = HMAC_SHA256(canonical_string, CLIENT_SECRET)
 Regras:
 
 - `METHOD` em maiúsculas (`GET`, `POST`).
-- `PATH` é o path absoluto da URL, sem query string (ex.: `/v1/cobrancas`).
+- `PATH` é o path absoluto da URL, sem query string.
 - `TIMESTAMP` é Unix em segundos (string decimal).
 - `NONCE` é UUIDv4.
-- `HASH_SHA256(REQUEST_BODY)` é hex minúsculo. Body vazio (GET/cancel) usa SHA-256 de `""`.
+- `HASH_SHA256(REQUEST_BODY)` é hex minúsculo. Body vazio usa SHA-256 de `""`.
 - `X-Signature` é HMAC-SHA256 em hex minúsculo.
-- Tolerância de relógio no servidor: 300s (validação no gateway/API, não no SDK).
 
 Vetores compartilhados: [`docs/hmac-test-vectors.md`](hmac-test-vectors.md).
 
-## Endpoints cobertos (não inventar outros)
+## Endpoints cobertos no SDK
 
-| Método SDK | HTTP | Path relativo a `/v1` |
+| Método SDK | HTTP | Path relativo à `base_url` |
 | --- | --- | --- |
 | `Cobrancas.Create` | `POST` | `/cobrancas` (+ `Idempotency-Key`) |
 | `Cobrancas.Find` | `GET` | `/cobrancas/{id}` |
 | `Cobrancas.List` | `GET` | `/cobrancas` |
 | `Cobrancas.Cancel` | `POST` | `/cobrancas/{id}/cancel` |
 | `Licenses.Verify` | `POST` | `/licenses/verify` (opcional na inicialização) |
-| `Webhooks.Verify` | — | verificação **local** da mesma canonical string |
+| `Webhooks.Verify` | — | verificação **local** |
 
-## Domínio Cobrança
+Paths adicionais da API (`/empresa`, `/pagadores`, `/faturas`): ver [`integracao-ordex-pay.md`](integracao-ordex-pay.md).
 
-- `id` (UUID)
-- `external_reference`
-- `valor_centavos` (int64)
-- `vencimento` (`YYYY-MM-DD`)
-- `status`: `pendente` \| `paga` \| `vencida` \| `cancelada`
-- `pagador`: `documento`, `nome`, `email`
-- `juros`, `multa`
-
-## Onde cada SDK assina
+## Onde cada SDK injeta headers
 
 | SDK | Ponto de injeção |
 | --- | --- |
 | Ruby | Faraday middleware `Security::SigningMiddleware` |
 | Go | `http.RoundTripper` em `security.go` |
-| C# | `SigningDelegatingHandler` + `AddAgendaCobranca` / `IHttpClientFactory` |
+| C# | `SigningDelegatingHandler` + `AddAgendaCobranca` |
 
-## Etapa 2 (fora desta entrega)
+## Integração portal
 
-O Security Gateway interno passa a ser o hop obrigatório: emite tokens efêmeros, confere licença e HMAC, e encaminha para `agenda_cobranca_api`. Os thin clients desta entrega já aceitam apontar `base_url` para essa URL quando ela existir.
+Guia para o portal Ordex Pay Integração: [`integracao-ordex-pay.md`](integracao-ordex-pay.md).

@@ -87,24 +87,29 @@ func (s *Signer) ValidSignature(method, path, timestamp, nonce, signature string
 }
 
 type signingRoundTripper struct {
-	next     http.RoundTripper
-	signer   *Signer
-	clientID string
-	apiKey   string
+	next            http.RoundTripper
+	signer          *Signer
+	clientID        string
+	apiKey          string
+	signingEnabled  bool
 }
 
 func (t *signingRoundTripper) RoundTrip(req *http.Request) (*http.Response, error) {
-	corpo, err := lerBodyRequest(req)
-	if err != nil {
-		return nil, err
-	}
-
-	assinatura := t.signer.Sign(req.Method, req.URL.Path, corpo)
-	req.Header.Set("X-Client-Id", t.clientID)
-	req.Header.Set("X-Timestamp", assinatura.Timestamp)
-	req.Header.Set("X-Nonce", assinatura.Nonce)
-	req.Header.Set("X-Signature", assinatura.Signature)
+	// Ordex Pay external API: always send both api-key headers with the same value.
+	req.Header.Set("chave_api", t.apiKey)
 	req.Header.Set("X-Api-Key", t.apiKey)
+
+	if t.signingEnabled {
+		corpo, err := lerBodyRequest(req)
+		if err != nil {
+			return nil, err
+		}
+		assinatura := t.signer.Sign(req.Method, req.URL.Path, corpo)
+		req.Header.Set("X-Client-Id", t.clientID)
+		req.Header.Set("X-Timestamp", assinatura.Timestamp)
+		req.Header.Set("X-Nonce", assinatura.Nonce)
+		req.Header.Set("X-Signature", assinatura.Signature)
+	}
 
 	return t.next.RoundTrip(req)
 }

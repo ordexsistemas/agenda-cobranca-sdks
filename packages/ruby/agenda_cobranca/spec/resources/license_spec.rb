@@ -4,7 +4,13 @@ require "spec_helper"
 
 RSpec.describe AgendaCobranca::Resources::License do
   it "chama POST /licenses/verify" do
-    stub = stub_request(:post, "https://api.agendacobranca.example/v1/licenses/verify")
+    AgendaCobranca.configure do |cfg|
+      cfg.api_key = "api_key_exemplo"
+      cfg.client_id = "client_exemplo"
+      cfg.base_url = "https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo"
+    end
+
+    stub = stub_request(:post, "https://hml-agendafinanceira.ordexpay.com.br/api/v2/externo/licenses/verify")
            .with(body: hash_including("client_id" => "client_exemplo"))
            .to_return(
              status: 200,

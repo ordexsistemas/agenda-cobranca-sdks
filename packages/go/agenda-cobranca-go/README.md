@@ -1,13 +1,12 @@
 # agenda-cobranca-go
 
-Módulo Go (thin client) da Agenda Cobrança API. O `http.RoundTripper` injeta `X-Client-Id`, `X-Timestamp`, `X-Nonce` e `X-Signature` em toda request.
+Modulo Go (thin client) da API externa Ordex Pay / Agenda Financeira.
+No uso basico basta `APIKey` (+ `BaseURL` opcional). HMAC e opcional (`SigningEnabled`, OFF por padrao).
 
 ```go
 client, err := agendacobranca.NewClient(agendacobranca.Options{
-    ClientID:     os.Getenv("AGENDA_COBRANCA_CLIENT_ID"),
-    APIKey:       os.Getenv("AGENDA_COBRANCA_API_KEY"),
-    ClientSecret: os.Getenv("AGENDA_COBRANCA_CLIENT_SECRET"),
-    BaseURL:      "https://api.agendacobranca.example/v1",
+    APIKey:  os.Getenv("ORDEX_PAY_API_KEY"),
+    BaseURL: os.Getenv("ORDEX_PAY_BASE_URL"), // opcional; default HML Ordex Pay
 })
 
 cobranca, err := client.CreateCobranca(ctx, agendacobranca.CreateCobrancaInput{
@@ -22,6 +21,8 @@ cobranca, err := client.CreateCobranca(ctx, agendacobranca.CreateCobrancaInput{
     IdempotencyKey: "pedido-1001-cobranca",
 })
 ```
+
+Toda request envia `chave_api` e `X-Api-Key`. Com `SigningEnabled: true`, tambem envia os headers HMAC.
 
 ```bash
 go test ./...

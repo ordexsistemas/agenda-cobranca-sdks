@@ -10,7 +10,9 @@ module AgendaCobranca
     def initialize(configuration = nil)
       @configuration = configuration || AgendaCobranca.configuration.dup
       @configuration.validate!
-      @signer = Security::Signer.new(@configuration.client_secret)
+      @signer = if @configuration.signing_enabled
+                  Security::Signer.new(@configuration.client_secret)
+                end
       @connection = montar_conexao
 
       verificar_licenca_se_solicitado
@@ -35,13 +37,18 @@ module AgendaCobranca
     private
 
     def montar_conexao
+      api_key = @configuration.api_key
+      signing_enabled = @configuration.signing_enabled
       signer = @signer
       client_id = @configuration.client_id
-      api_key = @configuration.api_key
 
       Faraday.new(url: @configuration.base_url) do |faraday|
         faraday.request :json
-        faraday.use Security::SigningMiddleware, signer: signer, client_id: client_id, api_key: api_key
+        faraday.use Security::SigningMiddleware,
+                    api_key: api_key,
+                    signing_enabled: signing_enabled,
+                    signer: signer,
+                    client_id: client_id
         faraday.options.timeout = @configuration.timeout
         faraday.options.open_timeout = @configuration.open_timeout
         faraday.adapter Faraday.default_adapter
