@@ -5,7 +5,7 @@
     <Nullable>enable</Nullable>
     <RootNamespace>AgendaCobranca.Sdk</RootNamespace>
     <PackageId>AgendaCobranca.Sdk</PackageId>
-    <Version>0.2.0</Version>
+    <Version>0.2.1</Version>
     <Authors>Ordex Sistemas</Authors>
     <Description>Thin client .NET 8 para a API externa Ordex Pay / Agenda Financeira (api_key; HMAC-SHA256 opcional).</Description>
     <PackageTags>agenda;cobranca;ordex;hmac;sdk</PackageTags>

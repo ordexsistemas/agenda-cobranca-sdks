@@ -7,12 +7,20 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 
 ## [Unreleased]
 
-### Added
-- SDK Node.js/TypeScript `@ordexsistemas/agenda-cobranca` (`packages/nodejs/agenda-cobranca`)
-- Pipeline de publicação no GitHub Packages (npm, NuGet, RubyGems) e tag do módulo Go (`docs/publishing.md`)
+
+## [0.2.1] - 2026-09-16
 
 ### Changed
-- Scope npm `@ordexsistemas/agenda-cobranca` (org GitHub) e registries apontando para GitHub Packages, não nuget.org / npmjs / RubyGems.org
+- Merge pull request #5 from ordexsistemas/cursor/github-packages-publish-802b
+- feat: publish SDKs to GitHub Packages as @ordexsistemas/agenda-cobranca
+- Merge pull request #3 from ordexsistemas/docs/portal-integracao
+- Merge pull request #4 from ordexsistemas/cursor/nodejs-sdk-and-publish-802b
+- fix: sync Gemfile.lock with gem 0.2.0 for frozen bundle install
+- fix: publish Node SDK as scoped @ordex/agenda-cobranca
+- feat: add Node.js SDK and registry publish workflows
+- docs: MD da página Integração para o front Ordex Pay
+- Merge pull request #2 from ordexsistemas/fix/gh-token-versionamento
+- fix: pass GH_TOKEN to gh in versionamento Actions
 
 ## [0.2.0] - 2026-09-16
 
