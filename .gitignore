@@ -1,0 +1,27 @@
+# Ruby
+packages/ruby/agenda_cobranca/.bundle/
+packages/ruby/agenda_cobranca/vendor/
+packages/ruby/agenda_cobranca/spec/examples.txt
+*.gem
+
+# Go
+packages/go/agenda-cobranca-go/coverage.out
+
+# .NET
+packages/csharp/**/bin/
+packages/csharp/**/obj/
+*.user
+
+# Ambiente
+.env
+.env.*
+!.env.example
+
+# IDE
+.idea/
+.vscode/
+*.swp
+.DS_Store
+
+# Uploads locais da sessao
+uploads/
